@@ -170,6 +170,25 @@
       "protein_pct_active": 1.3,
       "fat_pct_active": 0.3,
       "carbs_pct_active": 5.7
+    },
+    {
+      "name": "Apples, red delicious, with skin, raw",
+      "calories_100g": 61.8,
+      "protein_g": 0.188,
+      "fat_g": 0.212,
+      "carbs_g": 14.8,
+      "calories_pct_sedentary": 3.1,
+      "protein_pct_sedentary": 0.4,
+      "fat_pct_sedentary": 0.3,
+      "carbs_pct_sedentary": 4.9,
+      "calories_pct_normal": 2.8,
+      "protein_pct_normal": 0.4,
+      "fat_pct_normal": 0.3,
+      "carbs_pct_normal": 4.5,
+      "calories_pct_active": 2.5,
+      "protein_pct_active": 0.3,
+      "fat_pct_active": 0.3,
+      "carbs_pct_active": 4.2
     }
   ]
 }
