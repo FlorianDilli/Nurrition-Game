@@ -202,7 +202,7 @@ function placeFood(playerIndex) {
     if (state.waitingForNext) return;
 
     const correctIndex = getCorrectIndex();
-    const isCorrect = playerIndex === correctIndex;
+    const isCorrect = playerIndex - 1 === correctIndex;
 
     if (!isCorrect) {
         state.lives--;
