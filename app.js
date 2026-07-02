@@ -132,6 +132,10 @@ function selectNutrient(nutrient) {
 function selectCategory(category) {
     state.category = category;
     localStorage.setItem('nutritionGame_category', category);
+    if (!foods || foods.length === 0) {
+        alert('Food data not loaded yet. Please try again in a moment.');
+        return;
+    }
     startGame();
 }
 
