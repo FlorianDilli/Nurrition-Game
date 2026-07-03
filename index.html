@@ -161,6 +161,27 @@
     margin-top:10px;
   }
 
+  .back-btn{
+    font-family:'Space Mono', monospace;
+    font-weight:700;
+    font-size:12px;
+    letter-spacing:1px;
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    cursor:pointer;
+    padding:8px 12px;
+    align-self:flex-start;
+    margin-bottom:4px;
+    display:flex;
+    align-items:center;
+    gap:4px;
+    transition:color .15s ease;
+    min-height:44px;
+  }
+  .back-btn:hover{ color:var(--ink); }
+  .back-btn:active{ transform:scale(0.96); }
+
   .game-wrap{ flex:1; display:flex; flex-direction:column; min-height:0; }
 
   .current-card{
@@ -242,10 +263,13 @@
     display:flex;
     justify-content:space-between;
     align-items:baseline;
-    padding:10px 6px;
+    padding:12px 10px;
     font-size:14px;
-    border-bottom:1px dotted var(--line);
-    border-radius:2px;
+    background:#FAF8F2;
+    border:1px solid var(--line);
+    border-radius:4px;
+    margin:6px 0;
+    box-shadow: 0 1px 3px rgba(36,31,22,0.06);
     transition: background .2s ease;
   }
   .food-line .fname{ flex:1; padding-right:8px; }
@@ -317,12 +341,14 @@
     </section>
 
     <section class="screen" id="screen-nutrient">
+      <button class="back-btn" id="nutrientBackBtn">← BACK</button>
       <h1 class="title">Sort by which nutrient?</h1>
       <p class="sub">Every item in this round is ranked high → low on this value.</p>
       <div class="stack" id="nutrientList"></div>
     </section>
 
     <section class="screen" id="screen-category">
+      <button class="back-btn" id="categoryBackBtn">← BACK</button>
       <h1 class="title">Pick your aisle.</h1>
       <p class="sub">Foods will be pulled at random from this shelf.</p>
       <div class="stack" id="categoryList"></div>
@@ -637,13 +663,14 @@ function setupDragDrop(){
     dragCardRect = card.getBoundingClientRect();
     dragOffsetY = e.clientY - dragCardRect.top;
     card.classList.add('dragging');
+    card.style.pointerEvents = 'none';
     document.querySelectorAll('.gap').forEach(g=>g.classList.add('drop-active'));
   });
 
   card.addEventListener('pointermove', function(e){
     if(!dragActive) return;
     const dy = e.clientY - dragOffsetY - dragCardRect.top;
-    if(Math.abs(dy) > 8) dragMoved = true;
+    if(Math.abs(dy) > 3) dragMoved = true;
     if(!dragMoved) return;
     card.style.transform = `translateY(${dy}px) scale(1.04)`;
 
@@ -660,6 +687,7 @@ function setupDragDrop(){
     dragActive = false;
     card.classList.remove('dragging');
     card.style.transform = '';
+    card.style.pointerEvents = '';
     document.querySelectorAll('.gap').forEach(g=>{
       g.classList.remove('drop-active','drop-hover');
     });
@@ -682,6 +710,7 @@ function setupDragDrop(){
     dragMoved = false;
     card.classList.remove('dragging');
     card.style.transform = '';
+    card.style.pointerEvents = '';
     document.querySelectorAll('.gap').forEach(g=>{
       g.classList.remove('drop-active','drop-hover');
     });
@@ -701,6 +730,8 @@ document.getElementById('homeBtn').onclick = ()=>{
   document.getElementById('hud').style.display='none';
   show('screen-home');
 };
+document.getElementById('nutrientBackBtn').onclick = ()=>{ show('screen-home'); };
+document.getElementById('categoryBackBtn').onclick = ()=>{ show('screen-nutrient'); };
 
 })();
 </script>
