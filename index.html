@@ -296,8 +296,6 @@
   .feedback-banner.wrong{ background:rgba(178,58,46,0.12); border:1px solid var(--red); color:var(--red); }
   .feedback-banner b{ display:block; font-family:'Anton', sans-serif; font-size:15px; letter-spacing:0.5px; margin-bottom:2px; }
 
-  .continue-wrap{ margin-top:12px; flex-shrink:0; }
-
   .stamp{
     align-self:center;
     border:3px solid var(--red);
@@ -323,7 +321,7 @@
 
   <header class="receipt-head">
     <div class="barcode" id="barcode"></div>
-    <h1 class="brand">FRESH GUESS<small>SORT THE SHELF · NO. 001</small></h1>
+    <h1 class="brand">FRESH GUESS<small>SORT THE SHELF</small></h1>
   </header>
 
   <div class="hud" id="hud" style="display:none;">
@@ -355,6 +353,7 @@
     </section>
 
     <section class="screen" id="screen-game">
+      <button class="back-btn" id="gameBackBtn">← STOP</button>
       <div class="game-wrap">
         <div class="current-card" id="currentCard">
           <div class="label">NOW SCANNING</div>
@@ -364,9 +363,6 @@
         <div class="receipt-list" id="receiptList"></div>
       </div>
       <div class="feedback-banner" id="feedbackBanner"></div>
-      <div class="continue-wrap" id="continueWrap" style="display:none;">
-        <button class="primary-btn" id="continueBtn">NEXT ITEM</button>
-      </div>
     </section>
 
     <section class="screen" id="screen-over">
@@ -549,7 +545,6 @@ function startRound(){
   document.getElementById('currentFoodName').textContent = state.current[0];
   document.getElementById('feedbackBanner').className='feedback-banner';
   document.getElementById('feedbackBanner').innerHTML='';
-  document.getElementById('continueWrap').style.display='none';
   renderList();
 }
 
@@ -636,13 +631,18 @@ function handlePlacement(chosenIndex){
     : `<b>MISPLACED — SHELF CORRECTED</b>${food[0]} — ${valNum} ${state.nutrient.unit} (${p}% of daily ${state.nutrient.label.toLowerCase()}). It belonged at position ${correct+1}.`;
 
   document.getElementById('currentFoodName').textContent = food[0]+' ✓ shelved';
-  document.getElementById('continueWrap').style.display='block';
 
   if(state.lives<=0){
     setTimeout(()=>{
       document.getElementById('finalScore').textContent = state.correctCount;
       show('screen-over');
     }, 900);
+  }else{
+    setTimeout(()=>{
+      document.getElementById('feedbackBanner').className='feedback-banner';
+      document.getElementById('feedbackBanner').innerHTML='';
+      startRound();
+    }, 1100);
   }
 }
 
@@ -720,7 +720,6 @@ function setupDragDrop(){
 setupDragDrop();
 
 document.getElementById('startBtn').onclick = ()=>{ renderNutrientScreen(); show('screen-nutrient'); };
-document.getElementById('continueBtn').onclick = ()=>{ if(state.lives>0) startRound(); };
 document.getElementById('playAgainBtn').onclick = ()=>{
   document.getElementById('hud').style.display='flex';
   renderNutrientScreen();
@@ -732,6 +731,10 @@ document.getElementById('homeBtn').onclick = ()=>{
 };
 document.getElementById('nutrientBackBtn').onclick = ()=>{ show('screen-home'); };
 document.getElementById('categoryBackBtn').onclick = ()=>{ show('screen-nutrient'); };
+document.getElementById('gameBackBtn').onclick = ()=>{
+  document.getElementById('hud').style.display='none';
+  show('screen-home');
+};
 
 })();
 </script>
