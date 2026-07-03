@@ -191,28 +191,11 @@
     padding:16px 18px;
     margin-bottom:14px;
     box-shadow: 0 4px 0 rgba(0,0,0,0.15);
-    cursor:grab;
-    touch-action:none;
     position:relative;
     z-index:2;
-    transition: transform .15s ease, box-shadow .15s ease;
-  }
-  .current-card:active{ cursor:grabbing; }
-  .current-card.dragging{
-    transform: scale(1.04);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
-    z-index:100;
-    opacity:0.9;
   }
   .current-card .label{ font-size:10px; letter-spacing:3px; opacity:0.6; margin-bottom:6px;}
   .current-card .name{ font-family:'Anton', sans-serif; font-size:22px; letter-spacing:0.5px; }
-  .current-card .hint{ font-size:11px; opacity:0.7; margin-top:6px; display:flex; align-items:center; gap:6px; }
-  .hint-arrow{ display:inline-block; animation: bob 1.2s ease-in-out infinite; }
-
-  @keyframes bob{
-    0%,100%{ transform:translateY(0); }
-    50%{ transform:translateY(4px); }
-  }
 
   .receipt-list{
     flex:1;
@@ -231,33 +214,28 @@
     transition: background .15s ease;
     border-radius:2px;
     margin:2px 0;
+    background:rgba(196,136,30,0.08);
   }
   .gap::before{
     content:'';
     position:absolute;
     left:0; right:0; top:50%; transform:translateY(-50%);
-    border-top:2px dashed transparent;
-    transition: border-color .15s ease;
+    border-top:2px dashed var(--amber);
   }
-  .gap.drop-active{ background:rgba(196,136,30,0.08); }
-  .gap.drop-active::before{ border-color:var(--amber); }
-  .gap.drop-hover{ background:rgba(196,136,30,0.15); }
-  .gap.drop-hover::before{ border-color:var(--amber); border-width:3px; }
+  .gap:active{ background:rgba(196,136,30,0.15); }
   .gap-tap{
     font-size:10px;
     letter-spacing:2px;
     color:var(--amber);
-    opacity:0;
+    opacity:0.7;
     background:var(--paper);
     padding:4px 12px;
     border:1px dashed var(--amber);
     border-radius:20px;
-    transition:opacity .15s ease, transform .15s ease;
     z-index:1;
     position:relative;
   }
-  .gap.drop-active .gap-tap{ opacity:0.7; }
-  .gap.drop-hover .gap-tap{ opacity:1; transform:scale(1.05); }
+  .gap:active .gap-tap{ opacity:1; transform:scale(1.05); }
 
   .food-line{
     display:flex;
@@ -281,22 +259,6 @@
   .food-line.flash-wrong{ animation: flashR .5s ease; }
   @keyframes flashG{ 0%{background:rgba(59,110,76,0.4);} 100%{} }
   @keyframes flashR{ 0%{background:rgba(178,58,46,0.4);} 100%{} }
-
-  .feedback-banner{
-    margin-top:14px;
-    padding:12px 14px;
-    border-radius:2px;
-    font-size:13px;
-    line-height:1.5;
-    display:none;
-    flex-shrink:0;
-  }
-  .feedback-banner.show{ display:block; }
-  .feedback-banner.correct{ background:rgba(59,110,76,0.12); border:1px solid var(--green); color:var(--green); }
-  .feedback-banner.wrong{ background:rgba(178,58,46,0.12); border:1px solid var(--red); color:var(--red); }
-  .feedback-banner b{ display:block; font-family:'Anton', sans-serif; font-size:15px; letter-spacing:0.5px; margin-bottom:2px; }
-
-  .continue-wrap{ margin-top:12px; flex-shrink:0; }
 
   .stamp{
     align-self:center;
@@ -323,7 +285,7 @@
 
   <header class="receipt-head">
     <div class="barcode" id="barcode"></div>
-    <h1 class="brand">FRESH GUESS<small>SORT THE SHELF · NO. 001</small></h1>
+    <h1 class="brand">FRESH GUESS<small>SORT THE SHELF</small></h1>
   </header>
 
   <div class="hud" id="hud" style="display:none;">
@@ -355,17 +317,13 @@
     </section>
 
     <section class="screen" id="screen-game">
+      <button class="back-btn" id="gameBackBtn">← STOP</button>
       <div class="game-wrap">
         <div class="current-card" id="currentCard">
           <div class="label">NOW SCANNING</div>
           <div class="name" id="currentFoodName">—</div>
-          <div class="hint"><span class="hint-arrow">↓</span> Drag down to place it on the shelf</div>
         </div>
         <div class="receipt-list" id="receiptList"></div>
-      </div>
-      <div class="feedback-banner" id="feedbackBanner"></div>
-      <div class="continue-wrap" id="continueWrap" style="display:none;">
-        <button class="primary-btn" id="continueBtn">NEXT ITEM</button>
       </div>
     </section>
 
@@ -475,7 +433,6 @@ function newGame(nutrientKey, categoryKey){
 }
 
 function foodVal(entry){ return entry.food[state.nutrient.idx]; }
-function pct(entry){ return Math.round((foodVal(entry)/state.nutrient.daily)*100); }
 
 function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -547,9 +504,6 @@ function startRound(){
   state.current = state.pool.shift();
   state.resolved = false;
   document.getElementById('currentFoodName').textContent = state.current[0];
-  document.getElementById('feedbackBanner').className='feedback-banner';
-  document.getElementById('feedbackBanner').innerHTML='';
-  document.getElementById('continueWrap').style.display='none';
   renderList();
 }
 
@@ -567,25 +521,17 @@ function renderList(){
   function makeGap(index){
     const g = document.createElement('div');
     g.className='gap';
-    if(!state.resolved) g.classList.add('drop-active');
     g.dataset.index = index;
     const tap = document.createElement('span');
     tap.className='gap-tap';
     tap.textContent='PLACE HERE';
     g.appendChild(tap);
     if(!state.resolved){
-      g.style.touchAction = 'manipulation';
       g.addEventListener('click', (e)=>{
         e.stopPropagation();
         e.preventDefault();
         if(state.resolved) return;
         handlePlacement(index);
-      });
-      g.addEventListener('pointerenter', ()=>{
-        if(dragActive) g.classList.add('drop-hover');
-      });
-      g.addEventListener('pointerleave', ()=>{
-        g.classList.remove('drop-hover');
       });
     }
     return g;
@@ -610,8 +556,6 @@ function handlePlacement(chosenIndex){
   const correct = correctIndex();
   const isCorrect = chosenIndex === correct;
   const food = state.current;
-  const valNum = food[state.nutrient.idx];
-  const p = Math.round((valNum/state.nutrient.daily)*100);
 
   const entry = { food, result: isCorrect };
 
@@ -629,98 +573,21 @@ function handlePlacement(chosenIndex){
   const target = Array.from(lines).find(l=>l.dataset.name===food[0]);
   if(target) target.classList.add(isCorrect ? 'flash-correct' : 'flash-wrong');
 
-  const banner = document.getElementById('feedbackBanner');
-  banner.classList.add('show', isCorrect?'correct':'wrong');
-  banner.innerHTML = isCorrect
-    ? `<b>CORRECT PLACEMENT</b>${food[0]} — ${valNum} ${state.nutrient.unit} (${p}% of daily ${state.nutrient.label.toLowerCase()})`
-    : `<b>MISPLACED — SHELF CORRECTED</b>${food[0]} — ${valNum} ${state.nutrient.unit} (${p}% of daily ${state.nutrient.label.toLowerCase()}). It belonged at position ${correct+1}.`;
-
   document.getElementById('currentFoodName').textContent = food[0]+' ✓ shelved';
-  document.getElementById('continueWrap').style.display='block';
 
   if(state.lives<=0){
     setTimeout(()=>{
       document.getElementById('finalScore').textContent = state.correctCount;
       show('screen-over');
     }, 900);
+  }else{
+    setTimeout(()=>{
+      startRound();
+    }, 800);
   }
 }
 
-let dragActive = false;
-let dragMoved = false;
-let dragOffsetY = 0;
-let dragCardRect = null;
-
-function setupDragDrop(){
-  const card = document.getElementById('currentCard');
-  if(!card) return;
-
-  card.addEventListener('pointerdown', function(e){
-    if(state.resolved) return;
-    dragActive = true;
-    dragMoved = false;
-    card.setPointerCapture(e.pointerId);
-    dragCardRect = card.getBoundingClientRect();
-    dragOffsetY = e.clientY - dragCardRect.top;
-    card.classList.add('dragging');
-    card.style.pointerEvents = 'none';
-    document.querySelectorAll('.gap').forEach(g=>g.classList.add('drop-active'));
-  });
-
-  card.addEventListener('pointermove', function(e){
-    if(!dragActive) return;
-    const dy = e.clientY - dragOffsetY - dragCardRect.top;
-    if(Math.abs(dy) > 3) dragMoved = true;
-    if(!dragMoved) return;
-    card.style.transform = `translateY(${dy}px) scale(1.04)`;
-
-    const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
-    document.querySelectorAll('.gap').forEach(g=>g.classList.remove('drop-hover'));
-    if(elemBelow && elemBelow.closest('.gap')){
-      const gap = elemBelow.closest('.gap');
-      gap.classList.add('drop-hover');
-    }
-  });
-
-  card.addEventListener('pointerup', function(e){
-    if(!dragActive) return;
-    dragActive = false;
-    card.classList.remove('dragging');
-    card.style.transform = '';
-    card.style.pointerEvents = '';
-    document.querySelectorAll('.gap').forEach(g=>{
-      g.classList.remove('drop-active','drop-hover');
-    });
-
-    if(!dragMoved) return;
-
-    const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
-    if(elemBelow){
-      const gap = elemBelow.closest('.gap');
-      if(gap && !state.resolved){
-        const idx = parseInt(gap.dataset.index);
-        handlePlacement(idx);
-      }
-    }
-  });
-
-  card.addEventListener('pointercancel', function(){
-    if(!dragActive) return;
-    dragActive = false;
-    dragMoved = false;
-    card.classList.remove('dragging');
-    card.style.transform = '';
-    card.style.pointerEvents = '';
-    document.querySelectorAll('.gap').forEach(g=>{
-      g.classList.remove('drop-active','drop-hover');
-    });
-  });
-}
-
-setupDragDrop();
-
 document.getElementById('startBtn').onclick = ()=>{ renderNutrientScreen(); show('screen-nutrient'); };
-document.getElementById('continueBtn').onclick = ()=>{ if(state.lives>0) startRound(); };
 document.getElementById('playAgainBtn').onclick = ()=>{
   document.getElementById('hud').style.display='flex';
   renderNutrientScreen();
@@ -732,6 +599,10 @@ document.getElementById('homeBtn').onclick = ()=>{
 };
 document.getElementById('nutrientBackBtn').onclick = ()=>{ show('screen-home'); };
 document.getElementById('categoryBackBtn').onclick = ()=>{ show('screen-nutrient'); };
+document.getElementById('gameBackBtn').onclick = ()=>{
+  document.getElementById('hud').style.display='none';
+  show('screen-home');
+};
 
 })();
 </script>
