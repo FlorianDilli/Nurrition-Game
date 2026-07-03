@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>Fresh Guess — sort the shelf</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,30 +21,31 @@
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
-  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none;}
   html,body{margin:0;padding:0;height:100%;}
   body{
     background: var(--ink);
     color:var(--ink);
     font-family:'Space Mono', monospace;
-    display:flex;
-    justify-content:center;
-    min-height:100vh;
+    min-height:100dvh;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
     padding: max(16px, var(--safe-top)) 12px max(16px, var(--safe-bottom));
   }
   #app{
     width:100%;
     max-width:430px;
+    margin:0 auto;
     background:
       repeating-linear-gradient(180deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, transparent 1px, transparent 3px),
       var(--paper);
     border-radius:2px;
     box-shadow: var(--shadow);
-    min-height: calc(100vh - 32px);
+    min-height: calc(100dvh - 32px);
     display:flex;
     flex-direction:column;
     position:relative;
-    overflow:hidden;
+    overflow:visible;
   }
   .torn-top, .torn-bottom{
     height:10px;
@@ -59,6 +60,7 @@
     padding:18px 22px 14px;
     text-align:center;
     border-bottom:1px dashed var(--line);
+    flex-shrink:0;
   }
   .barcode{
     display:flex;
@@ -93,6 +95,7 @@
     letter-spacing:1px;
     border-bottom:1px dashed var(--line);
     background:var(--paper-dark);
+    flex-shrink:0;
   }
   .hud .tag{ color:var(--ink-soft); }
   .hud .val{ color:var(--ink); font-weight:700; }
@@ -100,14 +103,15 @@
   .heart{ width:14px; height:14px; }
   .heart svg{ width:100%; height:100%; display:block; }
 
-  main{ flex:1; display:flex; flex-direction:column; padding:20px 20px 8px; }
-  .screen{ display:none; flex:1; flex-direction:column; }
+  main{ flex:1; display:flex; flex-direction:column; padding:20px 20px 8px; min-height:0; overflow:visible; }
+  .screen{ display:none; flex:1; flex-direction:column; overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; }
   .screen.active{ display:flex; }
+  #screen-game{ overflow:visible; }
 
   h1.title{ font-family:'Anton', sans-serif; font-size:22px; letter-spacing:1px; margin:0 0 6px; }
   p.sub{ color:var(--ink-soft); font-size:13px; line-height:1.5; margin:0 0 22px; }
 
-  .stack{ display:flex; flex-direction:column; gap:10px; }
+  .stack{ display:flex; flex-direction:column; gap:10px; padding-bottom:12px; }
   .choice-btn{
     font-family:'Space Mono', monospace;
     font-weight:700;
@@ -157,63 +161,102 @@
     margin-top:10px;
   }
 
-  /* Gameplay */
+  .game-wrap{ flex:1; display:flex; flex-direction:column; min-height:0; }
+
   .current-card{
     background:var(--ink);
     color:var(--paper);
-    border-radius:2px;
+    border-radius:4px;
     padding:16px 18px;
-    margin-bottom:16px;
+    margin-bottom:14px;
     box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+    cursor:grab;
+    touch-action:none;
+    position:relative;
+    z-index:2;
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .current-card:active{ cursor:grabbing; }
+  .current-card.dragging{
+    transform: scale(1.04);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+    z-index:100;
+    opacity:0.9;
   }
   .current-card .label{ font-size:10px; letter-spacing:3px; opacity:0.6; margin-bottom:6px;}
   .current-card .name{ font-family:'Anton', sans-serif; font-size:22px; letter-spacing:0.5px; }
-  .current-card .hint{ font-size:11px; opacity:0.7; margin-top:6px; }
+  .current-card .hint{ font-size:11px; opacity:0.7; margin-top:6px; display:flex; align-items:center; gap:6px; }
+  .hint-arrow{ display:inline-block; animation: bob 1.2s ease-in-out infinite; }
 
-  .receipt-list{ flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-right:2px; }
+  @keyframes bob{
+    0%,100%{ transform:translateY(0); }
+    50%{ transform:translateY(4px); }
+  }
+
+  .receipt-list{
+    flex:1;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding-right:2px;
+    min-height:0;
+  }
   .gap{
-    min-height:20px;
+    min-height:38px;
     display:flex;
     align-items:center;
     justify-content:center;
     cursor:pointer;
     position:relative;
+    transition: background .15s ease;
+    border-radius:2px;
+    margin:2px 0;
   }
   .gap::before{
     content:'';
     position:absolute;
-    left:0; right:0; top:50%;
-    border-top:1px dashed transparent;
+    left:0; right:0; top:50%; transform:translateY(-50%);
+    border-top:2px dashed transparent;
+    transition: border-color .15s ease;
   }
-  .gap.armed::before{ border-top:1px dashed var(--amber); }
+  .gap.drop-active{ background:rgba(196,136,30,0.08); }
+  .gap.drop-active::before{ border-color:var(--amber); }
+  .gap.drop-hover{ background:rgba(196,136,30,0.15); }
+  .gap.drop-hover::before{ border-color:var(--amber); border-width:3px; }
   .gap-tap{
     font-size:10px;
     letter-spacing:2px;
     color:var(--amber);
     opacity:0;
     background:var(--paper);
-    padding:2px 8px;
+    padding:4px 12px;
     border:1px dashed var(--amber);
-    border-radius:10px;
-    transition:opacity .12s ease;
+    border-radius:20px;
+    transition:opacity .15s ease, transform .15s ease;
+    z-index:1;
+    position:relative;
   }
-  .gap.armed .gap-tap{ opacity:1; }
+  .gap.drop-active .gap-tap{ opacity:0.7; }
+  .gap.drop-hover .gap-tap{ opacity:1; transform:scale(1.05); }
 
   .food-line{
     display:flex;
     justify-content:space-between;
     align-items:baseline;
-    padding:10px 4px;
+    padding:10px 6px;
     font-size:14px;
     border-bottom:1px dotted var(--line);
+    border-radius:2px;
+    transition: background .2s ease;
   }
   .food-line .fname{ flex:1; padding-right:8px; }
   .food-line .leader{ flex:0 0 auto; color:var(--line); overflow:hidden; white-space:nowrap; }
   .food-line .fval{ font-weight:700; flex:0 0 auto; }
-  .food-line.flash-correct{ animation: flashG .6s ease; }
-  .food-line.flash-wrong{ animation: flashR .6s ease; }
-  @keyframes flashG{ 0%{background:rgba(59,110,76,0.25);} 100%{background:transparent;} }
-  @keyframes flashR{ 0%{background:rgba(178,58,46,0.25);} 100%{background:transparent;} }
+  .food-line.correct{ background:rgba(59,110,76,0.15); border-left:3px solid var(--green); padding-left:3px; }
+  .food-line.wrong{ background:rgba(178,58,46,0.15); border-left:3px solid var(--red); padding-left:3px; }
+  .food-line.flash-correct{ animation: flashG .5s ease; }
+  .food-line.flash-wrong{ animation: flashR .5s ease; }
+  @keyframes flashG{ 0%{background:rgba(59,110,76,0.4);} 100%{} }
+  @keyframes flashR{ 0%{background:rgba(178,58,46,0.4);} 100%{} }
 
   .feedback-banner{
     margin-top:14px;
@@ -222,15 +265,15 @@
     font-size:13px;
     line-height:1.5;
     display:none;
+    flex-shrink:0;
   }
   .feedback-banner.show{ display:block; }
   .feedback-banner.correct{ background:rgba(59,110,76,0.12); border:1px solid var(--green); color:var(--green); }
   .feedback-banner.wrong{ background:rgba(178,58,46,0.12); border:1px solid var(--red); color:var(--red); }
   .feedback-banner b{ display:block; font-family:'Anton', sans-serif; font-size:15px; letter-spacing:0.5px; margin-bottom:2px; }
 
-  .continue-wrap{ margin-top:12px; }
+  .continue-wrap{ margin-top:12px; flex-shrink:0; }
 
-  /* Game over */
   .stamp{
     align-self:center;
     border:3px solid var(--red);
@@ -267,42 +310,39 @@
 
   <main>
 
-    <!-- HOME -->
     <section class="screen active" id="screen-home">
       <h1 class="title">Build your intuition, one item at a time.</h1>
       <p class="sub">A fresh food appears. You slot it into the list where you think it belongs. Get it wrong, and you lose a life. How long a shelf can you sort before you're out?</p>
       <button class="primary-btn" id="startBtn">START SHOPPING</button>
     </section>
 
-    <!-- NUTRIENT SELECT -->
     <section class="screen" id="screen-nutrient">
       <h1 class="title">Sort by which nutrient?</h1>
-      <p class="sub">Every item in this round is ranked low → high on this value.</p>
+      <p class="sub">Every item in this round is ranked high → low on this value.</p>
       <div class="stack" id="nutrientList"></div>
     </section>
 
-    <!-- CATEGORY SELECT -->
     <section class="screen" id="screen-category">
       <h1 class="title">Pick your aisle.</h1>
       <p class="sub">Foods will be pulled at random from this shelf.</p>
       <div class="stack" id="categoryList"></div>
     </section>
 
-    <!-- GAMEPLAY -->
     <section class="screen" id="screen-game">
-      <div class="current-card">
-        <div class="label">NOW SCANNING</div>
-        <div class="name" id="currentFoodName">—</div>
-        <div class="hint">Tap the shelf gap where it belongs</div>
+      <div class="game-wrap">
+        <div class="current-card" id="currentCard">
+          <div class="label">NOW SCANNING</div>
+          <div class="name" id="currentFoodName">—</div>
+          <div class="hint"><span class="hint-arrow">↓</span> Drag down to place it on the shelf</div>
+        </div>
+        <div class="receipt-list" id="receiptList"></div>
       </div>
-      <div class="receipt-list" id="receiptList"></div>
       <div class="feedback-banner" id="feedbackBanner"></div>
       <div class="continue-wrap" id="continueWrap" style="display:none;">
         <button class="primary-btn" id="continueBtn">NEXT ITEM</button>
       </div>
     </section>
 
-    <!-- GAME OVER -->
     <section class="screen" id="screen-over">
       <div class="stamp">VOID</div>
       <div class="final-score">
@@ -321,8 +361,6 @@
 <script>
 (function(){
 
-/* ---------------- DATA ---------------- */
-// per 100g
 const FOODS = {
   fruits: [
     ["Cucumber",15,0.7,3.6,0.1],["Watermelon",30,0.6,8,0.2],["Strawberry",32,0.7,8,0.3],
@@ -388,7 +426,6 @@ const CATEGORIES = [
   {key:"grains", label:"Grains"}, {key:"legumes", label:"Legumes"}
 ];
 
-/* ---------------- STATE ---------------- */
 let state = {};
 
 function shuffledPool(catKey){
@@ -403,19 +440,17 @@ function newGame(nutrientKey, categoryKey){
   const first = pool.shift();
   state = {
     nutrient, categoryKey, pool,
-    ordered: [first],
+    ordered: [{food: first, result: null}],
     lives: 4,
     correctCount: 0,
     current: null,
-    armedGap: null,
     resolved: false
   };
 }
 
-function val(food){ return food[state.nutrient.idx]; }
-function pct(food){ return Math.round((val(food)/state.nutrient.daily)*100); }
+function foodVal(entry){ return entry.food[state.nutrient.idx]; }
+function pct(entry){ return Math.round((foodVal(entry)/state.nutrient.daily)*100); }
 
-/* ---------------- SCREENS ---------------- */
 function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -479,14 +514,11 @@ function renderHearts(){
   }
 }
 
-/* ---------------- GAMEPLAY ---------------- */
 function startRound(){
   if(state.pool.length===0){
-    // reshuffle a fresh pool if exhausted (excluding what's already used ideally, but dataset is generous)
     state.pool = shuffledPool(state.categoryKey);
   }
   state.current = state.pool.shift();
-  state.armedGap = null;
   state.resolved = false;
   document.getElementById('currentFoodName').textContent = state.current[0];
   document.getElementById('feedbackBanner').className='feedback-banner';
@@ -496,9 +528,9 @@ function startRound(){
 }
 
 function correctIndex(){
-  const v = val(state.current);
+  const v = state.current[state.nutrient.idx];
   let idx = 0;
-  while(idx < state.ordered.length && val(state.ordered[idx]) <= v) idx++;
+  while(idx < state.ordered.length && foodVal(state.ordered[idx]) >= v) idx++;
   return idx;
 }
 
@@ -509,28 +541,38 @@ function renderList(){
   function makeGap(index){
     const g = document.createElement('div');
     g.className='gap';
+    if(!state.resolved) g.classList.add('drop-active');
     g.dataset.index = index;
     const tap = document.createElement('span');
     tap.className='gap-tap';
     tap.textContent='PLACE HERE';
     g.appendChild(tap);
     if(!state.resolved){
-      g.addEventListener('click', ()=>handlePlacement(index));
-      g.addEventListener('mouseenter', ()=>armGap(g));
-      g.addEventListener('mouseleave', ()=>disarmGap(g));
-      g.addEventListener('touchstart', ()=>armGap(g), {passive:true});
+      g.style.touchAction = 'manipulation';
+      g.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        e.preventDefault();
+        if(state.resolved) return;
+        handlePlacement(index);
+      });
+      g.addEventListener('pointerenter', ()=>{
+        if(dragActive) g.classList.add('drop-hover');
+      });
+      g.addEventListener('pointerleave', ()=>{
+        g.classList.remove('drop-hover');
+      });
     }
     return g;
   }
-  function armGap(g){ g.classList.add('armed'); }
-  function disarmGap(g){ g.classList.remove('armed'); }
 
   wrap.appendChild(makeGap(0));
-  state.ordered.forEach((food, i)=>{
+  state.ordered.forEach((entry, i)=>{
     const line = document.createElement('div');
     line.className='food-line';
-    line.dataset.name = food[0];
-    line.innerHTML = `<span class="fname">${food[0]}</span><span class="leader"></span><span class="fval">${val(food)} ${state.nutrient.unit}</span>`;
+    if(entry.result === true) line.classList.add('correct');
+    if(entry.result === false) line.classList.add('wrong');
+    line.dataset.name = entry.food[0];
+    line.innerHTML = `<span class="fname">${entry.food[0]}</span><span class="leader"></span><span class="fval">${foodVal(entry)} ${state.nutrient.unit}</span>`;
     wrap.appendChild(line);
     wrap.appendChild(makeGap(i+1));
   });
@@ -542,11 +584,12 @@ function handlePlacement(chosenIndex){
   const correct = correctIndex();
   const isCorrect = chosenIndex === correct;
   const food = state.current;
-  const v = val(food);
-  const p = pct(food);
+  const valNum = food[state.nutrient.idx];
+  const p = Math.round((valNum/state.nutrient.daily)*100);
 
-  // insert at correct sorted position regardless
-  state.ordered.splice(correct, 0, food);
+  const entry = { food, result: isCorrect };
+
+  state.ordered.splice(correct, 0, entry);
 
   if(isCorrect){
     state.correctCount++;
@@ -556,7 +599,6 @@ function handlePlacement(chosenIndex){
   }
 
   renderList();
-  // flash the line we just inserted
   const lines = document.querySelectorAll('.food-line');
   const target = Array.from(lines).find(l=>l.dataset.name===food[0]);
   if(target) target.classList.add(isCorrect ? 'flash-correct' : 'flash-wrong');
@@ -564,8 +606,8 @@ function handlePlacement(chosenIndex){
   const banner = document.getElementById('feedbackBanner');
   banner.classList.add('show', isCorrect?'correct':'wrong');
   banner.innerHTML = isCorrect
-    ? `<b>CORRECT PLACEMENT</b>${food[0]} — ${v} ${state.nutrient.unit} (${p}% of daily ${state.nutrient.label.toLowerCase()})`
-    : `<b>MISPLACED — SHELF CORRECTED</b>${food[0]} — ${v} ${state.nutrient.unit} (${p}% of daily ${state.nutrient.label.toLowerCase()}). It belonged at position ${correct+1}.`;
+    ? `<b>CORRECT PLACEMENT</b>${food[0]} — ${valNum} ${state.nutrient.unit} (${p}% of daily ${state.nutrient.label.toLowerCase()})`
+    : `<b>MISPLACED — SHELF CORRECTED</b>${food[0]} — ${valNum} ${state.nutrient.unit} (${p}% of daily ${state.nutrient.label.toLowerCase()}). It belonged at position ${correct+1}.`;
 
   document.getElementById('currentFoodName').textContent = food[0]+' ✓ shelved';
   document.getElementById('continueWrap').style.display='block';
@@ -578,7 +620,76 @@ function handlePlacement(chosenIndex){
   }
 }
 
-/* ---------------- WIRING ---------------- */
+let dragActive = false;
+let dragMoved = false;
+let dragOffsetY = 0;
+let dragCardRect = null;
+
+function setupDragDrop(){
+  const card = document.getElementById('currentCard');
+  if(!card) return;
+
+  card.addEventListener('pointerdown', function(e){
+    if(state.resolved) return;
+    dragActive = true;
+    dragMoved = false;
+    card.setPointerCapture(e.pointerId);
+    dragCardRect = card.getBoundingClientRect();
+    dragOffsetY = e.clientY - dragCardRect.top;
+    card.classList.add('dragging');
+    document.querySelectorAll('.gap').forEach(g=>g.classList.add('drop-active'));
+  });
+
+  card.addEventListener('pointermove', function(e){
+    if(!dragActive) return;
+    const dy = e.clientY - dragOffsetY - dragCardRect.top;
+    if(Math.abs(dy) > 8) dragMoved = true;
+    if(!dragMoved) return;
+    card.style.transform = `translateY(${dy}px) scale(1.04)`;
+
+    const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
+    document.querySelectorAll('.gap').forEach(g=>g.classList.remove('drop-hover'));
+    if(elemBelow && elemBelow.closest('.gap')){
+      const gap = elemBelow.closest('.gap');
+      gap.classList.add('drop-hover');
+    }
+  });
+
+  card.addEventListener('pointerup', function(e){
+    if(!dragActive) return;
+    dragActive = false;
+    card.classList.remove('dragging');
+    card.style.transform = '';
+    document.querySelectorAll('.gap').forEach(g=>{
+      g.classList.remove('drop-active','drop-hover');
+    });
+
+    if(!dragMoved) return;
+
+    const elemBelow = document.elementFromPoint(e.clientX, e.clientY);
+    if(elemBelow){
+      const gap = elemBelow.closest('.gap');
+      if(gap && !state.resolved){
+        const idx = parseInt(gap.dataset.index);
+        handlePlacement(idx);
+      }
+    }
+  });
+
+  card.addEventListener('pointercancel', function(){
+    if(!dragActive) return;
+    dragActive = false;
+    dragMoved = false;
+    card.classList.remove('dragging');
+    card.style.transform = '';
+    document.querySelectorAll('.gap').forEach(g=>{
+      g.classList.remove('drop-active','drop-hover');
+    });
+  });
+}
+
+setupDragDrop();
+
 document.getElementById('startBtn').onclick = ()=>{ renderNutrientScreen(); show('screen-nutrient'); };
 document.getElementById('continueBtn').onclick = ()=>{ if(state.lives>0) startRound(); };
 document.getElementById('playAgainBtn').onclick = ()=>{
