@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fresh Guess — sort the shelf</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Anton&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F4EFE1;
+    --paper-dark:#E7DFC8;
+    --ink:#241F16;
+    --ink-soft:#5C5443;
+    --line:#C9BFA0;
+    --red:#B23A2E;
+    --green:#3B6E4C;
+    --amber:#C4881E;
+    --shadow: 0 8px 24px rgba(36,31,22,0.18);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background: var(--ink);
+    color:var(--ink);
+    font-family:'Space Mono', monospace;
+    display:flex;
+    justify-content:center;
+    min-height:100vh;
+    padding: max(16px, var(--safe-top)) 12px max(16px, var(--safe-bottom));
+  }
+  #app{
+    width:100%;
+    max-width:430px;
+    background:
+      repeating-linear-gradient(180deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, transparent 1px, transparent 3px),
+      var(--paper);
+    border-radius:2px;
+    box-shadow: var(--shadow);
+    min-height: calc(100vh - 32px);
+    display:flex;
+    flex-direction:column;
+    position:relative;
+    overflow:hidden;
+  }
+  .torn-top, .torn-bottom{
+    height:10px;
+    width:100%;
+    background: var(--ink);
+    clip-path: polygon(0% 0%,4% 100%,8% 0%,12% 100%,16% 0%,20% 100%,24% 0%,28% 100%,32% 0%,36% 100%,40% 0%,44% 100%,48% 0%,52% 100%,56% 0%,60% 100%,64% 0%,68% 100%,72% 0%,76% 100%,80% 0%,84% 100%,88% 0%,92% 100%,96% 0%,100% 100%,100% 0%);
+    flex-shrink:0;
+  }
+  .torn-bottom{ transform: rotate(180deg); }
+
+  header.receipt-head{
+    padding:18px 22px 14px;
+    text-align:center;
+    border-bottom:1px dashed var(--line);
+  }
+  .barcode{
+    display:flex;
+    justify-content:center;
+    gap:2px;
+    height:22px;
+    margin:0 auto 10px;
+  }
+  .barcode span{ display:block; width:2px; background:var(--ink); }
+  .brand{
+    font-family:'Anton', sans-serif;
+    font-size:30px;
+    letter-spacing:2px;
+    margin:0;
+    line-height:1;
+  }
+  .brand small{
+    display:block;
+    font-family:'Space Mono', monospace;
+    font-size:10px;
+    letter-spacing:4px;
+    font-weight:700;
+    color:var(--ink-soft);
+    margin-top:6px;
+  }
+  .hud{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 18px;
+    font-size:11px;
+    letter-spacing:1px;
+    border-bottom:1px dashed var(--line);
+    background:var(--paper-dark);
+  }
+  .hud .tag{ color:var(--ink-soft); }
+  .hud .val{ color:var(--ink); font-weight:700; }
+  .hearts{ display:flex; gap:4px; }
+  .heart{ width:14px; height:14px; }
+  .heart svg{ width:100%; height:100%; display:block; }
+
+  main{ flex:1; display:flex; flex-direction:column; padding:20px 20px 8px; }
+  .screen{ display:none; flex:1; flex-direction:column; }
+  .screen.active{ display:flex; }
+
+  h1.title{ font-family:'Anton', sans-serif; font-size:22px; letter-spacing:1px; margin:0 0 6px; }
+  p.sub{ color:var(--ink-soft); font-size:13px; line-height:1.5; margin:0 0 22px; }
+
+  .stack{ display:flex; flex-direction:column; gap:10px; }
+  .choice-btn{
+    font-family:'Space Mono', monospace;
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:0.5px;
+    text-align:left;
+    padding:16px 16px;
+    background:var(--paper);
+    border:1px solid var(--ink);
+    border-radius:2px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    min-height:44px;
+    cursor:pointer;
+    transition:transform .08s ease, background .15s ease;
+  }
+  .choice-btn:active{ transform:scale(0.98); background:var(--paper-dark); }
+  .choice-btn .arrow{ opacity:0.5; }
+
+  .primary-btn{
+    font-family:'Anton', sans-serif;
+    font-size:18px;
+    letter-spacing:1px;
+    color:var(--paper);
+    background:var(--ink);
+    border:none;
+    border-radius:2px;
+    padding:16px;
+    min-height:48px;
+    cursor:pointer;
+    width:100%;
+  }
+  .primary-btn:active{ transform:scale(0.98); }
+  .ghost-btn{
+    font-family:'Space Mono', monospace;
+    font-weight:700;
+    font-size:13px;
+    background:none;
+    border:1px solid var(--ink-soft);
+    color:var(--ink-soft);
+    border-radius:2px;
+    padding:12px;
+    min-height:44px;
+    cursor:pointer;
+    width:100%;
+    margin-top:10px;
+  }
+
+  /* Gameplay */
+  .current-card{
+    background:var(--ink);
+    color:var(--paper);
+    border-radius:2px;
+    padding:16px 18px;
+    margin-bottom:16px;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+  }
+  .current-card .label{ font-size:10px; letter-spacing:3px; opacity:0.6; margin-bottom:6px;}
+  .current-card .name{ font-family:'Anton', sans-serif; font-size:22px; letter-spacing:0.5px; }
+  .current-card .hint{ font-size:11px; opacity:0.7; margin-top:6px; }
+
+  .receipt-list{ flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch; padding-right:2px; }
+  .gap{
+    min-height:20px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    position:relative;
+  }
+  .gap::before{
+    content:'';
+    position:absolute;
+    left:0; right:0; top:50%;
+    border-top:1px dashed transparent;
+  }
+  .gap.armed::before{ border-top:1px dashed var(--amber); }
+  .gap-tap{
+    font-size:10px;
+    letter-spacing:2px;
+    color:var(--amber);
+    opacity:0;
+    background:var(--paper);
+    padding:2px 8px;
+    border:1px dashed var(--amber);
+    border-radius:10px;
+    transition:opacity .12s ease;
+  }
+  .gap.armed .gap-tap{ opacity:1; }
+
+  .food-line{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    padding:10px 4px;
+    font-size:14px;
+    border-bottom:1px dotted var(--line);
+  }
+  .food-line .fname{ flex:1; padding-right:8px; }
+  .food-line .leader{ flex:0 0 auto; color:var(--line); overflow:hidden; white-space:nowrap; }
+  .food-line .fval{ font-weight:700; flex:0 0 auto; }
+  .food-line.flash-correct{ animation: flashG .6s ease; }
+  .food-line.flash-wrong{ animation: flashR .6s ease; }
+  @keyframes flashG{ 0%{background:rgba(59,110,76,0.25);} 100%{background:transparent;} }
+  @keyframes flashR{ 0%{background:rgba(178,58,46,0.25);} 100%{background:transparent;} }
+
+  .feedback-banner{
+    margin-top:14px;
+    padding:12px 14px;
+    border-radius:2px;
+    font-size:13px;
+    line-height:1.5;
+    display:none;
+  }
+  .feedback-banner.show{ display:block; }
+  .feedback-banner.correct{ background:rgba(59,110,76,0.12); border:1px solid var(--green); color:var(--green); }
+  .feedback-banner.wrong{ background:rgba(178,58,46,0.12); border:1px solid var(--red); color:var(--red); }
+  .feedback-banner b{ display:block; font-family:'Anton', sans-serif; font-size:15px; letter-spacing:0.5px; margin-bottom:2px; }
+
+  .continue-wrap{ margin-top:12px; }
+
+  /* Game over */
+  .stamp{
+    align-self:center;
+    border:3px solid var(--red);
+    color:var(--red);
+    font-family:'Anton', sans-serif;
+    font-size:26px;
+    letter-spacing:2px;
+    padding:10px 20px;
+    transform:rotate(-6deg);
+    margin:24px auto;
+    border-radius:4px;
+  }
+  .final-score{ text-align:center; margin-bottom:24px; }
+  .final-score .num{ font-family:'Anton', sans-serif; font-size:56px; line-height:1; }
+  .final-score .cap{ font-size:11px; letter-spacing:3px; color:var(--ink-soft); margin-top:4px;}
+
+  ::-webkit-scrollbar{ width:0; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="torn-top"></div>
+
+  <header class="receipt-head">
+    <div class="barcode" id="barcode"></div>
+    <h1 class="brand">FRESH GUESS<small>SORT THE SHELF · NO. 001</small></h1>
+  </header>
+
+  <div class="hud" id="hud" style="display:none;">
+    <div><span class="tag">NUTRIENT </span><span class="val" id="hudNutrient">—</span></div>
+    <div><span class="tag">AISLE </span><span class="val" id="hudCategory">—</span></div>
+    <div class="hearts" id="hearts"></div>
+  </div>
+
+  <main>
+
+    <!-- HOME -->
+    <section class="screen active" id="screen-home">
+      <h1 class="title">Build your intuition, one item at a time.</h1>
+      <p class="sub">A fresh food appears. You slot it into the list where you think it belongs. Get it wrong, and you lose a life. How long a shelf can you sort before you're out?</p>
+      <button class="primary-btn" id="startBtn">START SHOPPING</button>
+    </section>
+
+    <!-- NUTRIENT SELECT -->
+    <section class="screen" id="screen-nutrient">
+      <h1 class="title">Sort by which nutrient?</h1>
+      <p class="sub">Every item in this round is ranked low → high on this value.</p>
+      <div class="stack" id="nutrientList"></div>
+    </section>
+
+    <!-- CATEGORY SELECT -->
+    <section class="screen" id="screen-category">
+      <h1 class="title">Pick your aisle.</h1>
+      <p class="sub">Foods will be pulled at random from this shelf.</p>
+      <div class="stack" id="categoryList"></div>
+    </section>
+
+    <!-- GAMEPLAY -->
+    <section class="screen" id="screen-game">
+      <div class="current-card">
+        <div class="label">NOW SCANNING</div>
+        <div class="name" id="currentFoodName">—</div>
+        <div class="hint">Tap the shelf gap where it belongs</div>
+      </div>
+      <div class="receipt-list" id="receiptList"></div>
+      <div class="feedback-banner" id="feedbackBanner"></div>
+      <div class="continue-wrap" id="continueWrap" style="display:none;">
+        <button class="primary-btn" id="continueBtn">NEXT ITEM</button>
+      </div>
+    </section>
+
+    <!-- GAME OVER -->
+    <section class="screen" id="screen-over">
+      <div class="stamp">VOID</div>
+      <div class="final-score">
+        <div class="num" id="finalScore">0</div>
+        <div class="cap">ITEMS SORTED CORRECTLY</div>
+      </div>
+      <button class="primary-btn" id="playAgainBtn">NEW RECEIPT</button>
+      <button class="ghost-btn" id="homeBtn">BACK TO START</button>
+    </section>
+
+  </main>
+
+  <div class="torn-bottom"></div>
+</div>
+
+<script>
+(function(){
+
+/* ---------------- DATA ---------------- */
+// per 100g
+const FOODS = {
+  fruits: [
+    ["Cucumber",15,0.7,3.6,0.1],["Watermelon",30,0.6,8,0.2],["Strawberry",32,0.7,8,0.3],
+    ["Peach",39,0.9,10,0.3],["Apple",52,0.3,14,0.2],["Pear",57,0.4,15,0.1],
+    ["Orange",47,0.9,12,0.1],["Grapes",69,0.7,18,0.2],["Kiwi",61,1.1,15,0.5],
+    ["Banana",89,1.1,23,0.3],["Mango",60,0.8,15,0.4],["Pineapple",50,0.5,13,0.1],
+    ["Cherries",63,1.1,16,0.2],["Blueberries",57,0.7,14,0.3],["Fig",74,0.8,19,0.3],
+    ["Pomegranate",83,1.7,19,1.2],["Avocado",160,2,9,15],["Coconut Meat",354,3.3,15,33]
+  ],
+  vegetables: [
+    ["Lettuce",15,1.4,2.9,0.2],["Spinach",23,2.9,3.6,0.4],["Zucchini",17,1.2,3.1,0.3],
+    ["Tomato",18,0.9,3.9,0.2],["Bell Pepper",31,1,6,0.3],["Broccoli",34,2.8,7,0.4],
+    ["Cauliflower",25,1.9,5,0.3],["Carrot",41,0.9,10,0.2],["Onion",40,1.1,9,0.1],
+    ["Brussels Sprouts",43,3.4,9,0.3],["Beetroot",43,1.6,10,0.2],["Sweet Corn",86,3.2,19,1.2],
+    ["Sweet Potato (Baked)",90,2,21,0.1],["Potato (Boiled)",87,1.9,20,0.1],["Butternut Squash",45,1,12,0.1],
+    ["Garlic",149,6.4,33,0.5],["Peas",81,5.4,14,0.4],["Kale",49,4.3,9,0.9]
+  ],
+  meat: [
+    ["Chicken Breast (Grilled)",165,31,0,3.6],["Turkey Breast (Roasted)",147,29,0,2],
+    ["Pork Loin (Roasted)",242,27,0,14],["Beef Sirloin (Grilled)",271,26,0,18],
+    ["Lamb Chop (Grilled)",294,25,0,21],["Beef Mince 5% (Cooked)",174,26,0,7],
+    ["Beef Mince 20% (Cooked)",254,25,0,17],["Chicken Thigh (Roasted)",209,26,0,11],
+    ["Duck Breast (Roasted)",201,24,0,11],["Bacon (Grilled)",541,37,1.4,42],
+    ["Ham (Sliced)",145,21,1.5,6],["Beef Steak (Lean, Grilled)",217,29,0,10]
+  ],
+  fish: [
+    ["Cod (Baked)",105,23,0,0.9],["Shrimp (Boiled)",99,24,0.2,0.3],["Tuna (Canned in Water)",116,26,0,0.8],
+    ["Haddock (Baked)",111,24,0,0.9],["Tilapia (Baked)",128,26,0,2.7],["Sea Bass (Grilled)",124,24,0,2.6],
+    ["Trout (Baked)",148,21,0,6.6],["Salmon (Baked)",206,28,0,10],["Mackerel (Grilled)",262,24,0,18],
+    ["Sardines (Canned in Oil)",208,25,0,11],["Herring (Grilled)",203,18,0,14],["Anchovies (Canned)",210,29,0,10]
+  ],
+  dairy: [
+    ["Skim Milk",34,3.4,5,0.1],["Buttermilk",40,3.3,4.8,1],["Whole Milk",61,3.2,4.8,3.3],
+    ["Cottage Cheese",98,11,3.4,4.3],["Greek Yogurt",97,9,6,5],["Plain Yogurt",61,3.5,4.7,3.3],
+    ["Mozzarella",280,22,2.2,17],["Feta Cheese",264,14,4,21],["Cheddar Cheese",403,25,1.3,33],
+    ["Parmesan",431,38,4.1,29],["Cream Cheese",342,6,4,34],["Butter",717,0.9,0.1,81]
+  ],
+  grains: [
+    ["Rice Cakes",387,8,82,2.8],["White Rice (Cooked)",130,2.7,28,0.3],["Oats (Cooked)",71,2.5,12,1.4],
+    ["Quinoa (Cooked)",120,4.4,21,1.9],["Brown Rice (Cooked)",123,2.7,26,1],["Whole Wheat Bread",247,13,41,4],
+    ["White Bread",265,9,49,3.2],["Couscous (Cooked)",112,3.8,23,0.2],["Barley (Cooked)",123,2.3,28,0.4],
+    ["Pasta (Cooked)",158,5.8,31,0.9],["Millet (Cooked)",119,3.5,23,1],["Buckwheat (Cooked)",92,3.4,20,0.6],
+    ["Cornmeal (Cooked)",370,8,79,3.6],["Rye Bread",259,9,48,3.3]
+  ],
+  legumes: [
+    ["Green Beans (Cooked)",35,1.9,7,0.2],["Edamame (Cooked)",122,11,10,5],["Tofu (Firm)",144,15,3.9,9],
+    ["Lentils (Cooked)",116,9,20,0.4],["Black Beans (Cooked)",132,8.9,24,0.5],["Chickpeas (Cooked)",164,9,27,2.6],
+    ["Kidney Beans (Cooked)",127,8.7,23,0.5],["Split Peas (Cooked)",118,8.3,21,0.4],["Soybeans (Cooked)",173,17,10,9],
+    ["White Beans (Cooked)",139,9.7,25,0.4],["Pinto Beans (Cooked)",143,9,26,0.7],["Peanuts (Roasted)",567,26,16,49]
+  ]
+};
+FOODS.all = Object.keys(FOODS).filter(k=>k!=='all').flatMap(k=>FOODS[k]);
+
+const NUTRIENTS = [
+  { key:"cal",  label:"Calories",      unit:"kcal", idx:1, daily:2300 },
+  { key:"prot", label:"Protein",       unit:"g",    idx:2, daily:60 },
+  { key:"carb", label:"Carbohydrates", unit:"g",    idx:3, daily:325 },
+  { key:"fat",  label:"Fat",           unit:"g",    idx:4, daily:75 }
+];
+const CATEGORIES = [
+  {key:"all", label:"All Foods"}, {key:"fruits", label:"Fruits"}, {key:"vegetables", label:"Vegetables"},
+  {key:"meat", label:"Meat"}, {key:"fish", label:"Fish"}, {key:"dairy", label:"Dairy"},
+  {key:"grains", label:"Grains"}, {key:"legumes", label:"Legumes"}
+];
+
+/* ---------------- STATE ---------------- */
+let state = {};
+
+function shuffledPool(catKey){
+  const arr = FOODS[catKey].slice();
+  for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+  return arr;
+}
+
+function newGame(nutrientKey, categoryKey){
+  const nutrient = NUTRIENTS.find(n=>n.key===nutrientKey);
+  const pool = shuffledPool(categoryKey);
+  const first = pool.shift();
+  state = {
+    nutrient, categoryKey, pool,
+    ordered: [first],
+    lives: 4,
+    correctCount: 0,
+    current: null,
+    armedGap: null,
+    resolved: false
+  };
+}
+
+function val(food){ return food[state.nutrient.idx]; }
+function pct(food){ return Math.round((val(food)/state.nutrient.daily)*100); }
+
+/* ---------------- SCREENS ---------------- */
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function buildBarcode(){
+  const bc = document.getElementById('barcode');
+  bc.innerHTML='';
+  const widths=[2,1,3,1,2,1,1,3,2,1,2,3,1,1,2,1,3,1,2,1,1,2];
+  widths.forEach(w=>{
+    const s=document.createElement('span');
+    s.style.width=w+'px';
+    bc.appendChild(s);
+  });
+}
+buildBarcode();
+renderCategoryScreen();
+
+function renderNutrientScreen(){
+  const wrap = document.getElementById('nutrientList');
+  wrap.innerHTML='';
+  NUTRIENTS.forEach(n=>{
+    const b=document.createElement('button');
+    b.className='choice-btn';
+    b.innerHTML = `<span>${n.label}</span><span class="arrow">→</span>`;
+    b.onclick=()=>{ state.pendingNutrient=n.key; show('screen-category'); };
+    wrap.appendChild(b);
+  });
+}
+
+function renderCategoryScreen(){
+  const wrap = document.getElementById('categoryList');
+  wrap.innerHTML='';
+  CATEGORIES.forEach(c=>{
+    const b=document.createElement('button');
+    b.className='choice-btn';
+    b.innerHTML = `<span>${c.label}</span><span class="arrow">→</span>`;
+    b.onclick=()=>{
+      newGame(state.pendingNutrient, c.key);
+      document.getElementById('hud').style.display='flex';
+      document.getElementById('hudNutrient').textContent = state.nutrient.label;
+      document.getElementById('hudCategory').textContent = c.label;
+      renderHearts();
+      startRound();
+      show('screen-game');
+    };
+    wrap.appendChild(b);
+  });
+}
+
+function renderHearts(){
+  const wrap = document.getElementById('hearts');
+  wrap.innerHTML='';
+  for(let i=0;i<4;i++){
+    const filled = i < state.lives;
+    const d = document.createElement('div');
+    d.className='heart';
+    d.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.7-10-9.3C.3 8.6 2 5 5.6 5 8 5 10 6.3 12 9c2-2.7 4-4 6.4-4C22 5 23.7 8.6 22 11.7 19.5 16.3 12 21 12 21z"
+      fill="${filled? '#B23A2E':'none'}" stroke="#B23A2E" stroke-width="1.5"/></svg>`;
+    wrap.appendChild(d);
+  }
+}
+
+/* ---------------- GAMEPLAY ---------------- */
+function startRound(){
+  if(state.pool.length===0){
+    // reshuffle a fresh pool if exhausted (excluding what's already used ideally, but dataset is generous)
+    state.pool = shuffledPool(state.categoryKey);
+  }
+  state.current = state.pool.shift();
+  state.armedGap = null;
+  state.resolved = false;
+  document.getElementById('currentFoodName').textContent = state.current[0];
+  document.getElementById('feedbackBanner').className='feedback-banner';
+  document.getElementById('feedbackBanner').innerHTML='';
+  document.getElementById('continueWrap').style.display='none';
+  renderList();
+}
+
+function correctIndex(){
+  const v = val(state.current);
+  let idx = 0;
+  while(idx < state.ordered.length && val(state.ordered[idx]) <= v) idx++;
+  return idx;
+}
+
+function renderList(){
+  const wrap = document.getElementById('receiptList');
+  wrap.innerHTML='';
+
+  function makeGap(index){
+    const g = document.createElement('div');
+    g.className='gap';
+    g.dataset.index = index;
+    const tap = document.createElement('span');
+    tap.className='gap-tap';
+    tap.textContent='PLACE HERE';
+    g.appendChild(tap);
+    if(!state.resolved){
+      g.addEventListener('click', ()=>handlePlacement(index));
+      g.addEventListener('mouseenter', ()=>armGap(g));
+      g.addEventListener('mouseleave', ()=>disarmGap(g));
+      g.addEventListener('touchstart', ()=>armGap(g), {passive:true});
+    }
+    return g;
+  }
+  function armGap(g){ g.classList.add('armed'); }
+  function disarmGap(g){ g.classList.remove('armed'); }
+
+  wrap.appendChild(makeGap(0));
+  state.ordered.forEach((food, i)=>{
+    const line = document.createElement('div');
+    line.className='food-line';
+    line.dataset.name = food[0];
+    line.innerHTML = `<span class="fname">${food[0]}</span><span class="leader"></span><span class="fval">${val(food)} ${state.nutrient.unit}</span>`;
+    wrap.appendChild(line);
+    wrap.appendChild(makeGap(i+1));
+  });
+}
+
+function handlePlacement(chosenIndex){
+  if(state.resolved) return;
+  state.resolved = true;
+  const correct = correctIndex();
+  const isCorrect = chosenIndex === correct;
+  const food = state.current;
+  const v = val(food);
+  const p = pct(food);
+
+  // insert at correct sorted position regardless
+  state.ordered.splice(correct, 0, food);
+
+  if(isCorrect){
+    state.correctCount++;
+  }else{
+    state.lives--;
+    renderHearts();
+  }
+
+  renderList();
+  // flash the line we just inserted
+  const lines = document.querySelectorAll('.food-line');
+  const target = Array.from(lines).find(l=>l.dataset.name===food[0]);
+  if(target) target.classList.add(isCorrect ? 'flash-correct' : 'flash-wrong');
+
+  const banner = document.getElementById('feedbackBanner');
+  banner.classList.add('show', isCorrect?'correct':'wrong');
+  banner.innerHTML = isCorrect
+    ? `<b>CORRECT PLACEMENT</b>${food[0]} — ${v} ${state.nutrient.unit} (${p}% of daily ${state.nutrient.label.toLowerCase()})`
+    : `<b>MISPLACED — SHELF CORRECTED</b>${food[0]} — ${v} ${state.nutrient.unit} (${p}% of daily ${state.nutrient.label.toLowerCase()}). It belonged at position ${correct+1}.`;
+
+  document.getElementById('currentFoodName').textContent = food[0]+' ✓ shelved';
+  document.getElementById('continueWrap').style.display='block';
+
+  if(state.lives<=0){
+    setTimeout(()=>{
+      document.getElementById('finalScore').textContent = state.correctCount;
+      show('screen-over');
+    }, 900);
+  }
+}
+
+/* ---------------- WIRING ---------------- */
+document.getElementById('startBtn').onclick = ()=>{ renderNutrientScreen(); show('screen-nutrient'); };
+document.getElementById('continueBtn').onclick = ()=>{ if(state.lives>0) startRound(); };
+document.getElementById('playAgainBtn').onclick = ()=>{
+  document.getElementById('hud').style.display='flex';
+  renderNutrientScreen();
+  show('screen-nutrient');
+};
+document.getElementById('homeBtn').onclick = ()=>{
+  document.getElementById('hud').style.display='none';
+  show('screen-home');
+};
+
+})();
+</script>
+</body>
+</html>
