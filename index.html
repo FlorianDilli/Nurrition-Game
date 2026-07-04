@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<title>Fresh Guess — sort the shelf</title>
+<title>Nutri Sort — Build Your Food Intuition</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Anton&display=swap" rel="stylesheet">
@@ -122,6 +122,7 @@
     padding:16px 16px;
     background:var(--paper);
     border:1px solid var(--ink);
+    color:var(--ink);
     border-radius:2px;
     display:flex;
     justify-content:space-between;
@@ -212,31 +213,27 @@
     justify-content:center;
     cursor:pointer;
     position:relative;
-    transition: background .15s ease;
     border-radius:2px;
     margin:2px 0;
-    background:rgba(196,136,30,0.08);
   }
   .gap::before{
     content:'';
     position:absolute;
     left:0; right:0; top:50%; transform:translateY(-50%);
-    border-top:2px dashed var(--amber);
+    border-top:2px dashed var(--ink);
   }
-  .gap:active{ background:rgba(196,136,30,0.15); }
   .gap-tap{
     font-size:10px;
     letter-spacing:2px;
-    color:var(--amber);
-    opacity:0.7;
+    color:var(--ink);
     background:var(--paper);
     padding:4px 12px;
-    border:1px dashed var(--amber);
+    border:1px dashed var(--ink);
     border-radius:20px;
     z-index:1;
     position:relative;
   }
-  .gap:active .gap-tap{ opacity:1; transform:scale(1.05); }
+  .gap:active .gap-tap{ transform:scale(1.05); }
 
   .anchor-label{
     font-size:9px;
@@ -300,7 +297,7 @@
 
   <header class="receipt-head">
     <div class="barcode" id="barcode"></div>
-    <h1 class="brand">FRESH GUESS<small>SORT THE SHELF</small></h1>
+    <h1 class="brand">NUTRI SORT<small>BUILD YOUR FOOD INTUITION</small></h1>
   </header>
 
   <div class="hud" id="hud" style="display:none;">
