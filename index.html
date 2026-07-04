@@ -12,11 +12,12 @@
     --paper:#F4EFE1;
     --paper-dark:#E7DFC8;
     --ink:#241F16;
-    --ink-soft:#5C5443;
+    --ink-soft:#2D5A3D;
     --line:#C9BFA0;
     --red:#B23A2E;
     --green:#3B6E4C;
     --amber:#C4881E;
+    --deep-green:#1B4D3E;
     --shadow: 0 8px 24px rgba(36,31,22,0.18);
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -237,6 +238,17 @@
   }
   .gap:active .gap-tap{ opacity:1; transform:scale(1.05); }
 
+  .anchor-label{
+    font-size:9px;
+    letter-spacing:2px;
+    color:var(--ink-soft);
+    text-align:center;
+    padding:6px 0;
+    border-bottom:1px dashed var(--line);
+    flex-shrink:0;
+  }
+  .anchor-label.bottom{ border-bottom:none; border-top:1px dashed var(--line); }
+
   .food-line{
     display:flex;
     justify-content:space-between;
@@ -253,6 +265,7 @@
   .food-line .fname{ flex:1; padding-right:8px; }
   .food-line .leader{ flex:0 0 auto; color:var(--line); overflow:hidden; white-space:nowrap; }
   .food-line .fval{ font-weight:700; flex:0 0 auto; }
+  .food-line .per-unit{ display:block; font-size:9px; font-weight:400; color:var(--ink-soft); letter-spacing:0.5px; margin-top:2px; }
   .food-line.correct{ background:rgba(59,110,76,0.15); border-left:3px solid var(--green); padding-left:3px; }
   .food-line.wrong{ background:rgba(178,58,46,0.15); border-left:3px solid var(--red); padding-left:3px; }
   .food-line.flash-correct{ animation: flashG .5s ease; }
@@ -277,6 +290,8 @@
   .final-score .cap{ font-size:11px; letter-spacing:3px; color:var(--ink-soft); margin-top:4px;}
 
   ::-webkit-scrollbar{ width:0; }
+  ::selection{ background:var(--deep-green); color:var(--paper); }
+  :focus-visible{ outline:2px solid var(--deep-green); outline-offset:2px; }
 </style>
 </head>
 <body>
@@ -323,7 +338,9 @@
           <div class="label">NOW SCANNING</div>
           <div class="name" id="currentFoodName">—</div>
         </div>
+        <div class="anchor-label" id="anchorTop">MOST ↑</div>
         <div class="receipt-list" id="receiptList"></div>
+        <div class="anchor-label bottom" id="anchorBottom">LEAST ↓</div>
       </div>
     </section>
 
@@ -434,6 +451,11 @@ function newGame(nutrientKey, categoryKey){
 
 function foodVal(entry){ return entry.food[state.nutrient.idx]; }
 
+function displayVal(entry){
+  const v = foodVal(entry);
+  return state.nutrient.unit === 'kcal' ? Math.round(v) : v;
+}
+
 function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
@@ -476,6 +498,8 @@ function renderCategoryScreen(){
       document.getElementById('hud').style.display='flex';
       document.getElementById('hudNutrient').textContent = state.nutrient.label;
       document.getElementById('hudCategory').textContent = c.label;
+      document.getElementById('anchorTop').textContent = 'MOST ' + state.nutrient.label.toUpperCase() + ' \u2191';
+      document.getElementById('anchorBottom').textContent = 'LEAST ' + state.nutrient.label.toUpperCase() + ' \u2193';
       renderHearts();
       startRound();
       show('screen-game');
@@ -544,7 +568,7 @@ function renderList(){
     if(entry.result === true) line.classList.add('correct');
     if(entry.result === false) line.classList.add('wrong');
     line.dataset.name = entry.food[0];
-    line.innerHTML = `<span class="fname">${entry.food[0]}</span><span class="leader"></span><span class="fval">${foodVal(entry)} ${state.nutrient.unit}</span>`;
+    line.innerHTML = `<span class="fname">${entry.food[0]}<span class="per-unit">per&nbsp;100g</span></span><span class="leader"></span><span class="fval">${displayVal(entry)} ${state.nutrient.unit}</span>`;
     wrap.appendChild(line);
     wrap.appendChild(makeGap(i+1));
   });
@@ -553,13 +577,19 @@ function renderList(){
 function handlePlacement(chosenIndex){
   if(state.resolved) return;
   state.resolved = true;
+  const v = state.current[state.nutrient.idx];
   const correct = correctIndex();
-  const isCorrect = chosenIndex === correct;
+  let isCorrect = chosenIndex === correct;
+  if(!isCorrect && chosenIndex >= 0 && chosenIndex <= state.ordered.length){
+    const aboveOk = chosenIndex === 0 || foodVal(state.ordered[chosenIndex - 1]) >= v;
+    const belowOk = chosenIndex >= state.ordered.length || foodVal(state.ordered[chosenIndex]) <= v;
+    isCorrect = aboveOk && belowOk;
+  }
   const food = state.current;
 
   const entry = { food, result: isCorrect };
 
-  state.ordered.splice(correct, 0, entry);
+  state.ordered.splice(isCorrect ? chosenIndex : correct, 0, entry);
 
   if(isCorrect){
     state.correctCount++;
