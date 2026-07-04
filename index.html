@@ -6,354 +6,518 @@
 <title>Nutri Sort — Build Your Food Intuition</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Anton&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --paper:#F4EFE1;
-    --paper-dark:#E7DFC8;
-    --ink:#241F16;
-    --ink-soft:#2D5A3D;
-    --line:#C9BFA0;
-    --red:#B23A2E;
-    --green:#3B6E4C;
-    --amber:#C4881E;
-    --deep-green:#1B4D3E;
-    --shadow: 0 8px 24px rgba(36,31,22,0.18);
+  :root {
+    --bg-main: #F5F5F7;
+    --bg-card: #FFFFFF;
+    --text-main: #111111;
+    --text-muted: #7F8489;
+    --accent-dark: #111111;
+    --border-light: #E8EAEB;
+    --success: #2E7D32;
+    --success-bg: #E8F5E9;
+    --error: #D32F2F;
+    --error-bg: #FFEBEE;
+    --shadow-sm: 0 4px 12px rgba(0,0,0,0.03);
+    --shadow-md: 0 8px 24px rgba(0,0,0,0.06);
     --safe-top: env(safe-area-inset-top, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
   }
-  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-user-select:none; user-select:none;}
-  html,body{margin:0;padding:0;height:100%;}
-  body{
-    background: var(--ink);
-    color:var(--ink);
-    font-family:'Space Mono', monospace;
-    min-height:100dvh;
-    overflow-y:auto;
-    -webkit-overflow-scrolling:touch;
-    padding: max(16px, var(--safe-top)) 12px max(16px, var(--safe-bottom));
-  }
-  #app{
-    width:100%;
-    max-width:430px;
-    margin:0 auto;
-    background:
-      repeating-linear-gradient(180deg, rgba(0,0,0,0.02) 0px, rgba(0,0,0,0.02) 1px, transparent 1px, transparent 3px),
-      var(--paper);
-    border-radius:2px;
-    box-shadow: var(--shadow);
-    min-height: calc(100dvh - 32px);
-    display:flex;
-    flex-direction:column;
-    position:relative;
-    overflow:visible;
-  }
-  .torn-top, .torn-bottom{
-    height:10px;
-    width:100%;
-    background: var(--ink);
-    clip-path: polygon(0% 0%,4% 100%,8% 0%,12% 100%,16% 0%,20% 100%,24% 0%,28% 100%,32% 0%,36% 100%,40% 0%,44% 100%,48% 0%,52% 100%,56% 0%,60% 100%,64% 0%,68% 100%,72% 0%,76% 100%,80% 0%,84% 100%,88% 0%,92% 100%,96% 0%,100% 100%,100% 0%);
-    flex-shrink:0;
-  }
-  .torn-bottom{ transform: rotate(180deg); }
 
-  header.receipt-head{
-    padding:18px 22px 14px;
-    text-align:center;
-    border-bottom:1px dashed var(--line);
-    flex-shrink:0;
+  * { 
+    box-sizing: border-box; 
+    -webkit-tap-highlight-color: transparent; 
+    -webkit-user-select: none; 
+    user-select: none; 
   }
-  .barcode{
-    display:flex;
-    justify-content:center;
-    gap:2px;
-    height:22px;
-    margin:0 auto 10px;
-  }
-  .barcode span{ display:block; width:2px; background:var(--ink); }
-  .brand{
-    font-family:'Anton', sans-serif;
-    font-size:30px;
-    letter-spacing:2px;
-    margin:0;
-    line-height:1;
-  }
-  .brand small{
-    display:block;
-    font-family:'Space Mono', monospace;
-    font-size:10px;
-    letter-spacing:4px;
-    font-weight:700;
-    color:var(--ink-soft);
-    margin-top:6px;
-  }
-  .hud{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:10px 18px;
-    font-size:11px;
-    letter-spacing:1px;
-    border-bottom:1px dashed var(--line);
-    background:var(--paper-dark);
-    flex-shrink:0;
-  }
-  .hud .tag{ color:var(--ink-soft); }
-  .hud .val{ color:var(--ink); font-weight:700; }
-  .hearts{ display:flex; gap:4px; }
-  .heart{ width:14px; height:14px; }
-  .heart svg{ width:100%; height:100%; display:block; }
-
-  main{ flex:1; display:flex; flex-direction:column; padding:20px 20px 8px; min-height:0; overflow:visible; }
-  .screen{ display:none; flex:1; flex-direction:column; overflow-y:auto; -webkit-overflow-scrolling:touch; min-height:0; }
-  .screen.active{ display:flex; }
-  #screen-game{ overflow:visible; }
-
-  h1.title{ font-family:'Anton', sans-serif; font-size:22px; letter-spacing:1px; margin:0 0 6px; }
-  p.sub{ color:var(--ink-soft); font-size:13px; line-height:1.5; margin:0 0 22px; }
-
-  .stack{ display:flex; flex-direction:column; gap:10px; padding-bottom:12px; }
-  .choice-btn{
-    font-family:'Space Mono', monospace;
-    font-weight:700;
-    font-size:15px;
-    letter-spacing:0.5px;
-    text-align:left;
-    padding:16px 16px;
-    background:var(--paper);
-    border:1px solid var(--ink);
-    color:var(--ink);
-    border-radius:2px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    min-height:44px;
-    cursor:pointer;
-    transition:transform .08s ease, background .15s ease;
-  }
-  .choice-btn:active{ transform:scale(0.98); background:var(--paper-dark); }
-  .choice-btn .arrow{ opacity:0.5; }
-
-  .primary-btn{
-    font-family:'Anton', sans-serif;
-    font-size:18px;
-    letter-spacing:1px;
-    color:var(--paper);
-    background:var(--ink);
-    border:none;
-    border-radius:2px;
-    padding:16px;
-    min-height:48px;
-    cursor:pointer;
-    width:100%;
-  }
-  .primary-btn:active{ transform:scale(0.98); }
-  .ghost-btn{
-    font-family:'Space Mono', monospace;
-    font-weight:700;
-    font-size:13px;
-    background:none;
-    border:1px solid var(--ink-soft);
-    color:var(--ink-soft);
-    border-radius:2px;
-    padding:12px;
-    min-height:44px;
-    cursor:pointer;
-    width:100%;
-    margin-top:10px;
+  
+  html, body { 
+    margin: 0; 
+    padding: 0; 
+    height: 100%; 
+    background-color: #000000;
   }
 
-  .back-btn{
-    font-family:'Space Mono', monospace;
-    font-weight:700;
-    font-size:12px;
-    letter-spacing:1px;
-    background:none;
-    border:none;
-    color:var(--ink-soft);
-    cursor:pointer;
-    padding:8px 12px;
-    align-self:flex-start;
-    margin-bottom:4px;
-    display:flex;
-    align-items:center;
-    gap:4px;
-    transition:color .15s ease;
-    min-height:44px;
+  body {
+    color: var(--text-main);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    min-height: 100dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: max(12px, var(--safe-top)) 0 max(12px, var(--safe-bottom));
   }
-  .back-btn:hover{ color:var(--ink); }
-  .back-btn:active{ transform:scale(0.96); }
 
-  .game-wrap{ flex:1; display:flex; flex-direction:column; min-height:0; }
+  #app {
+    width: 100%;
+    max-width: 430px;
+    height: calc(100dvh - 24px);
+    background: var(--bg-main);
+    border-radius: 32px;
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
 
-  .current-card{
-    background:var(--ink);
-    color:var(--paper);
-    border-radius:4px;
-    padding:16px 18px;
-    margin-bottom:14px;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.15);
-    position:relative;
-    z-index:2;
+  header.receipt-head {
+    padding: 24px 24px 16px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
   }
-  .current-card .label{ font-size:10px; letter-spacing:3px; opacity:0.6; margin-bottom:6px;}
-  .current-card .name{ font-family:'Anton', sans-serif; font-size:22px; letter-spacing:0.5px; }
 
-  .receipt-list{
-    flex:1;
-    overflow-y:auto;
-    -webkit-overflow-scrolling:touch;
-    padding-right:2px;
-    min-height:0;
+  .barcode {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+    height: 14px;
+    margin-bottom: 12px;
+    opacity: 0.3;
   }
-  .gap{
-    min-height:38px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    position:relative;
-    border-radius:2px;
-    margin:2px 0;
-  }
-  .gap::before{
-    content:'';
-    position:absolute;
-    left:0; right:0; top:50%; transform:translateY(-50%);
-    border-top:2px dashed var(--ink);
-  }
-  .gap-tap{
-    font-size:10px;
-    letter-spacing:2px;
-    color:var(--ink);
-    background:var(--paper);
-    padding:4px 12px;
-    border:1px dashed var(--ink);
-    border-radius:20px;
-    z-index:1;
-    position:relative;
-  }
-  .gap:active .gap-tap{ transform:scale(1.05); }
+  .barcode span { display: block; width: 2px; background: var(--text-main); }
 
-  .anchor-label{
-    font-size:9px;
-    letter-spacing:2px;
-    color:var(--ink-soft);
-    text-align:center;
-    padding:6px 0;
-    border-bottom:1px dashed var(--line);
-    flex-shrink:0;
+  .brand {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    margin: 0;
+    text-align: center;
+    color: var(--text-main);
   }
-  .anchor-label.bottom{ border-bottom:none; border-top:1px dashed var(--line); }
-
-  .food-line{
-    display:flex;
-    justify-content:space-between;
-    align-items:baseline;
-    padding:12px 10px;
-    font-size:14px;
-    background:#FAF8F2;
-    border:1px solid var(--line);
-    border-radius:4px;
-    margin:6px 0;
-    box-shadow: 0 1px 3px rgba(36,31,22,0.06);
-    transition: background .2s ease;
+  .brand small {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 1px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-top: 4px;
+    text-transform: uppercase;
   }
-  .food-line .fname{ flex:1; padding-right:8px; }
-  .food-line .leader{ flex:0 0 auto; color:var(--line); overflow:hidden; white-space:nowrap; }
-  .food-line .fval{ font-weight:700; flex:0 0 auto; }
-  .food-line .per-unit{ display:block; font-size:9px; font-weight:400; color:var(--ink-soft); letter-spacing:0.5px; margin-top:2px; }
-  .food-line.correct{ background:rgba(59,110,76,0.15); border-left:3px solid var(--green); padding-left:3px; }
-  .food-line.wrong{ background:rgba(178,58,46,0.15); border-left:3px solid var(--red); padding-left:3px; }
-  .food-line.flash-correct{ animation: flashG .5s ease; }
-  .food-line.flash-wrong{ animation: flashR .5s ease; }
-  @keyframes flashG{ 0%{background:rgba(59,110,76,0.4);} 100%{} }
-  @keyframes flashR{ 0%{background:rgba(178,58,46,0.4);} 100%{} }
 
-  .stamp{
-    align-self:center;
-    border:3px solid var(--red);
-    color:var(--red);
-    font-family:'Anton', sans-serif;
-    font-size:26px;
-    letter-spacing:2px;
-    padding:10px 20px;
-    transform:rotate(-6deg);
-    margin:24px auto;
-    border-radius:4px;
+  .hud {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-light);
+    flex-shrink: 0;
   }
-  .final-score{ text-align:center; margin-bottom:24px; }
-  .final-score .num{ font-family:'Anton', sans-serif; font-size:56px; line-height:1; }
-  .final-score .cap{ font-size:11px; letter-spacing:3px; color:var(--ink-soft); margin-top:4px;}
+  .hud-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .hud .tag { 
+    font-size: 10px; 
+    font-weight: 700; 
+    color: var(--text-muted); 
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .hud .val { 
+    font-size: 14px; 
+    color: var(--text-main); 
+    font-weight: 700; 
+  }
+  .hearts { display: flex; gap: 6px; align-items: center; }
+  .heart { width: 16px; height: 16px; transition: transform 0.2s ease; }
+  .heart svg { width: 100%; height: 100%; display: block; }
 
-  ::-webkit-scrollbar{ width:0; }
-  ::selection{ background:var(--deep-green); color:var(--paper); }
-  :focus-visible{ outline:2px solid var(--deep-green); outline-offset:2px; }
+  main { 
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+    padding: 24px; 
+    min-height: 0; 
+    overflow: hidden;
+  }
+
+  .screen { 
+    display: none; 
+    flex: 1; 
+    flex-direction: column; 
+    min-height: 0; 
+  }
+  .screen.active { display: flex; }
+
+  /* Dynamic Custom Scrollbar */
+  .scrollable-content {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 4px;
+    margin-right: -4px;
+  }
+  .scrollable-content::-webkit-scrollbar { width: 4px; }
+  .scrollable-content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 4px; }
+
+  /* Typography Enhancements */
+  h1.title { 
+    font-size: 28px; 
+    font-weight: 800; 
+    letter-spacing: -0.75px; 
+    line-height: 1.2; 
+    margin: 0 0 10px; 
+    color: var(--text-main);
+  }
+  p.sub { 
+    color: var(--text-muted); 
+    font-size: 14px; 
+    line-height: 1.5; 
+    margin: 0 0 28px; 
+    font-weight: 500;
+  }
+
+  /* List Card Stack */
+  .stack { display: flex; flex-direction: column; gap: 12px; padding-bottom: 16px; }
+  
+  .choice-btn {
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 15px;
+    text-align: left;
+    padding: 18px 20px;
+    background: var(--bg-card);
+    border: 1px solid transparent;
+    color: var(--text-main);
+    border-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: all .2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .choice-btn:active { 
+    transform: scale(0.98); 
+    background: var(--border-light); 
+  }
+  .choice-btn .arrow { 
+    font-size: 16px;
+    color: var(--text-muted); 
+    transition: transform 0.2s ease;
+  }
+  .choice-btn:hover .arrow { transform: translateX(3px); }
+
+  /* Premium Buttons */
+  .primary-btn {
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    color: #FFFFFF;
+    background: var(--accent-dark);
+    border: none;
+    border-radius: 16px;
+    padding: 18px;
+    cursor: pointer;
+    width: 100%;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+  }
+  .primary-btn:active { transform: scale(0.97); opacity: 0.9; }
+
+  .ghost-btn {
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    background: transparent;
+    border: 1px solid var(--border-light);
+    color: var(--text-main);
+    border-radius: 16px;
+    padding: 16px;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 12px;
+    transition: all 0.2s ease;
+  }
+  .ghost-btn:active { background: rgba(0,0,0,0.03); }
+
+  .back-btn {
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 13px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    color: var(--text-muted);
+    border-radius: 10px;
+    cursor: pointer;
+    padding: 8px 14px;
+    align-self: flex-start;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: var(--shadow-sm);
+    transition: all .2s ease;
+  }
+  .back-btn:active { transform: scale(0.95); }
+
+  /* Game Board Redesign */
+  .game-wrap { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+  .current-card {
+    background: var(--accent-dark);
+    color: #FFFFFF;
+    border-radius: 20px;
+    padding: 22px;
+    margin-bottom: 18px;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+    position: relative;
+  }
+  .current-card .label { 
+    font-size: 10px; 
+    font-weight: 700;
+    letter-spacing: 1px; 
+    opacity: 0.5; 
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .current-card .name { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
+
+  .receipt-list {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 4px 4px 0;
+    min-height: 0;
+  }
+  .receipt-list::-webkit-scrollbar { width: 0; }
+
+  /* Premium Placement Dropzones */
+  .gap {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    margin: 4px 0;
+    border-radius: 14px;
+    transition: all 0.2s ease;
+  }
+  .gap::before {
+    content: '';
+    position: absolute;
+    left: 12px; right: 12px; top: 50%; transform: translateY(-50%);
+    border-top: 1px dashed var(--text-muted);
+    opacity: 0.25;
+    transition: all 0.2s ease;
+  }
+  .gap-tap {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    background: var(--bg-main);
+    padding: 6px 16px;
+    border: 1px solid var(--border-light);
+    border-radius: 20px;
+    z-index: 1;
+    position: relative;
+    box-shadow: var(--shadow-sm);
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .gap:hover::before, .gap:active::before { opacity: 0; }
+  .gap:hover .gap-tap, .gap:active .gap-tap {
+    opacity: 1;
+    transform: scale(1);
+    color: var(--text-main);
+    background: var(--bg-card);
+    border-color: var(--text-main);
+  }
+
+  .anchor-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 8px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.6;
+    flex-shrink: 0;
+  }
+
+  /* List Items */
+  .food-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    margin: 6px 0;
+    box-shadow: var(--shadow-sm);
+    transition: all .25s ease;
+  }
+  .food-line .fname { 
+    flex: 1; 
+    padding-right: 12px; 
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+  }
+  .food-line .fval { font-weight: 700; color: var(--text-main); }
+  .food-line .per-unit { 
+    font-size: 11px; 
+    font-weight: 500; 
+    color: var(--text-muted); 
+    margin-top: 2px; 
+  }
+  
+  /* State Feedback Modifiers */
+  .food-line.correct { 
+    background: var(--success-bg); 
+    border-color: rgba(46, 125, 50, 0.3); 
+  }
+  .food-line.correct .fname, .food-line.correct .fval { color: var(--success); }
+  
+  .food-line.wrong { 
+    background: var(--error-bg); 
+    border-color: rgba(211, 47, 47, 0.3); 
+  }
+  .food-line.wrong .fname, .food-line.wrong .fval { color: var(--error); }
+  
+  .food-line.flash-correct { animation: popSuccess 0.4s ease; }
+  .food-line.flash-wrong { animation: popWrong 0.4s ease; }
+  
+  @keyframes popSuccess {
+    0% { transform: scale(0.98); background: #C8E6C9; }
+    100% { transform: scale(1); }
+  }
+  @keyframes popWrong {
+    0% { transform: scale(0.98); background: #FFCDD2; }
+    100% { transform: scale(1); }
+  }
+
+  /* Game Over Screen Redesign */
+  .over-badge {
+    align-self: center;
+    background: rgba(213, 47, 47, 0.1);
+    color: var(--error);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    padding: 8px 18px;
+    text-transform: uppercase;
+    margin: 24px auto 16px;
+    border-radius: 30px;
+  }
+  .final-score { text-align: center; margin-bottom: 32px; background: var(--bg-card); padding: 32px 24px; border-radius: 24px; box-shadow: var(--shadow-sm); }
+  .final-score .num { font-size: 64px; font-weight: 800; line-height: 1; letter-spacing: -2px; color: var(--text-main); }
+  .final-score .cap { font-size: 12px; font-weight: 700; letter-spacing: 0.5px; color: var(--text-muted); margin-top: 10px; text-transform: uppercase; }
+
+  /* Home Screen Splash Layout */
+  #screen-home { justify-content: center; text-align: center; padding: 12px 8px; }
+  #screen-home .title { font-size: 32px; letter-spacing: -1px; margin-bottom: 12px; }
+  #screen-home .sub { margin-bottom: 40px; }
+  .illustration-box {
+    width: 140px;
+    height: 140px;
+    background: var(--bg-card);
+    border-radius: 32px;
+    margin: 0 auto 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-sm);
+  }
+  .illustration-box svg { width: 64px; height: 64px; color: var(--text-main); }
+
+  ::selection { background: var(--text-main); color: #FFFFFF; }
 </style>
 </head>
 <body>
 <div id="app">
-  <div class="torn-top"></div>
 
   <header class="receipt-head">
     <div class="barcode" id="barcode"></div>
-    <h1 class="brand">NUTRI SORT<small>BUILD YOUR FOOD INTUITION</small></h1>
+    <h1 class="brand">NUTRI SORT<small>Intuition Engine</small></h1>
   </header>
 
   <div class="hud" id="hud" style="display:none;">
-    <div><span class="tag">NUTRIENT </span><span class="val" id="hudNutrient">—</span></div>
-    <div><span class="tag">AISLE </span><span class="val" id="hudCategory">—</span></div>
+    <div class="hud-item">
+      <span class="tag">Target</span>
+      <span class="val" id="hudNutrient">—</span>
+    </div>
+    <div class="hud-item">
+      <span class="tag">Aisle</span>
+      <span class="val" id="hudCategory">—</span>
+    </div>
     <div class="hearts" id="hearts"></div>
   </div>
 
   <main>
 
     <section class="screen active" id="screen-home">
-      <h1 class="title">Build your intuition, one item at a time.</h1>
-      <p class="sub">A fresh food appears. You slot it into the list where you think it belongs. Get it wrong, and you lose a life. How long a shelf can you sort before you're out?</p>
-      <button class="primary-btn" id="startBtn">START SHOPPING</button>
+      <div class="illustration-box">
+        <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z"/></svg>
+      </div>
+      <h1 class="title">Master your food intuition.</h1>
+      <p class="sub">Slot incoming random ingredients into your sorted list dynamically based on exact real-world macro profiles. Miss a placement, lose a life.</p>
+      <button class="primary-btn" id="startBtn">Let's go!</button>
     </section>
 
     <section class="screen" id="screen-nutrient">
-      <button class="back-btn" id="nutrientBackBtn">← BACK</button>
-      <h1 class="title">Sort by which nutrient?</h1>
-      <p class="sub">Every item in this round is ranked high → low on this value.</p>
-      <div class="stack" id="nutrientList"></div>
+      <button class="back-btn" id="nutrientBackBtn">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg> Back
+      </button>
+      <h1 class="title">Select Macro</h1>
+      <p class="sub">Every item in this sorting phase will be ordered dynamically based on this nutritional value.</p>
+      <div class="scrollable-content">
+        <div class="stack" id="nutrientList"></div>
+      </div>
     </section>
 
     <section class="screen" id="screen-category">
-      <button class="back-btn" id="categoryBackBtn">← BACK</button>
-      <h1 class="title">Pick your aisle.</h1>
-      <p class="sub">Foods will be pulled at random from this shelf.</p>
-      <div class="stack" id="categoryList"></div>
+      <button class="back-btn" id="categoryBackBtn">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg> Back
+      </button>
+      <h1 class="title">Choose Aisle</h1>
+      <p class="sub">Pick the dynamic shelf pool you want to pull active item cards from.</p>
+      <div class="scrollable-content">
+        <div class="stack" id="categoryList"></div>
+      </div>
     </section>
 
     <section class="screen" id="screen-game">
-      <button class="back-btn" id="gameBackBtn">← STOP</button>
+      <button class="back-btn" id="gameBackBtn">Stop Session</button>
       <div class="game-wrap">
         <div class="current-card" id="currentCard">
-          <div class="label">NOW SCANNING</div>
+          <div class="label">Now Scanning</div>
           <div class="name" id="currentFoodName">—</div>
         </div>
-        <div class="anchor-label" id="anchorTop">MOST ↑</div>
+        <div class="anchor-label" id="anchorTop">Most ↑</div>
         <div class="receipt-list" id="receiptList"></div>
-        <div class="anchor-label bottom" id="anchorBottom">LEAST ↓</div>
+        <div class="anchor-label id="anchorBottom">Least ↓</div>
       </div>
     </section>
 
     <section class="screen" id="screen-over">
-      <div class="stamp">VOID</div>
+      <div class="over-badge">Session Concluded</div>
       <div class="final-score">
         <div class="num" id="finalScore">0</div>
-        <div class="cap">ITEMS SORTED CORRECTLY</div>
+        <div class="cap">Items Sorted Perfectly</div>
       </div>
-      <button class="primary-btn" id="playAgainBtn">NEW RECEIPT</button>
-      <button class="ghost-btn" id="homeBtn">BACK TO START</button>
+      <button class="primary-btn" id="playAgainBtn">Configure New Run</button>
+      <button class="ghost-btn" id="homeBtn">Return to Start</button>
     </section>
 
   </main>
-
-  <div class="torn-bottom"></div>
 </div>
 
 <script>
@@ -461,7 +625,7 @@ function show(id){
 function buildBarcode(){
   const bc = document.getElementById('barcode');
   bc.innerHTML='';
-  const widths=[2,1,3,1,2,1,1,3,2,1,2,3,1,1,2,1,3,1,2,1,1,2];
+  const widths=[2,1,4,1,2,3,1,1,3,2,1,4,1,2,1,1,3,1,2,1];
   widths.forEach(w=>{
     const s=document.createElement('span');
     s.style.width=w+'px';
@@ -495,8 +659,8 @@ function renderCategoryScreen(){
       document.getElementById('hud').style.display='flex';
       document.getElementById('hudNutrient').textContent = state.nutrient.label;
       document.getElementById('hudCategory').textContent = c.label;
-      document.getElementById('anchorTop').textContent = 'MOST ' + state.nutrient.label.toUpperCase() + ' \u2191';
-      document.getElementById('anchorBottom').textContent = 'LEAST ' + state.nutrient.label.toUpperCase() + ' \u2193';
+      document.getElementById('anchorTop').textContent = 'Highest ' + state.nutrient.label + ' \u2191';
+      document.getElementById('anchorBottom').textContent = 'Lowest ' + state.nutrient.label + ' \u2193';
       renderHearts();
       startRound();
       show('screen-game');
@@ -512,8 +676,9 @@ function renderHearts(){
     const filled = i < state.lives;
     const d = document.createElement('div');
     d.className='heart';
+    d.style.opacity = filled ? '1' : '0.2';
     d.innerHTML = `<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.7-10-9.3C.3 8.6 2 5 5.6 5 8 5 10 6.3 12 9c2-2.7 4-4 6.4-4C22 5 23.7 8.6 22 11.7 19.5 16.3 12 21 12 21z"
-      fill="${filled? '#B23A2E':'none'}" stroke="#B23A2E" stroke-width="1.5"/></svg>`;
+      fill="${filled? '#111111':'none'}" stroke="#111111" stroke-width="2"/></svg>`;
     wrap.appendChild(d);
   }
 }
@@ -545,7 +710,7 @@ function renderList(){
     g.dataset.index = index;
     const tap = document.createElement('span');
     tap.className='gap-tap';
-    tap.textContent='PLACE HERE';
+    tap.textContent='Place Here';
     g.appendChild(tap);
     if(!state.resolved){
       g.addEventListener('click', (e)=>{
@@ -565,7 +730,7 @@ function renderList(){
     if(entry.result === true) line.classList.add('correct');
     if(entry.result === false) line.classList.add('wrong');
     line.dataset.name = entry.food[0];
-    line.innerHTML = `<span class="fname">${entry.food[0]}<span class="per-unit">per&nbsp;100g</span></span><span class="leader"></span><span class="fval">${displayVal(entry)} ${state.nutrient.unit}</span>`;
+    line.innerHTML = `<span class="fname">${entry.food[0]}<span class="per-unit">per 100g</span></span><span class="fval">${displayVal(entry)} ${state.nutrient.unit}</span>`;
     wrap.appendChild(line);
     wrap.appendChild(makeGap(i+1));
   });
@@ -600,7 +765,7 @@ function handlePlacement(chosenIndex){
   const target = Array.from(lines).find(l=>l.dataset.name===food[0]);
   if(target) target.classList.add(isCorrect ? 'flash-correct' : 'flash-wrong');
 
-  document.getElementById('currentFoodName').textContent = food[0]+' ✓ shelved';
+  document.getElementById('currentFoodName').textContent = food[0];
 
   if(state.lives<=0){
     setTimeout(()=>{
@@ -614,19 +779,19 @@ function handlePlacement(chosenIndex){
   }
 }
 
-document.getElementById('startBtn').onclick = ()=>{ renderNutrientScreen(); show('screen-nutrient'); };
-document.getElementById('playAgainBtn').onclick = ()=>{
+document.getElementById('startBtn').onclick = () => { renderNutrientScreen(); show('screen-nutrient'); };
+document.getElementById('playAgainBtn').onclick = () => {
   document.getElementById('hud').style.display='flex';
   renderNutrientScreen();
   show('screen-nutrient');
 };
-document.getElementById('homeBtn').onclick = ()=>{
+document.getElementById('homeBtn').onclick = () => {
   document.getElementById('hud').style.display='none';
   show('screen-home');
 };
-document.getElementById('nutrientBackBtn').onclick = ()=>{ show('screen-home'); };
-document.getElementById('categoryBackBtn').onclick = ()=>{ show('screen-nutrient'); };
-document.getElementById('gameBackBtn').onclick = ()=>{
+document.getElementById('nutrientBackBtn').onclick = () => { show('screen-home'); };
+document.getElementById('categoryBackBtn').onclick = () => { show('screen-nutrient'); };
+document.getElementById('gameBackBtn').onclick = () => {
   document.getElementById('hud').style.display='none';
   show('screen-home');
 };
