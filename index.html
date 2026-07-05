@@ -76,7 +76,34 @@
     align-items: center;
     flex-shrink: 0;
     z-index: 10;
+    position: relative;
   }
+
+  .header-back-btn {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+    background: var(--bg-card);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    padding: 0;
+    color: var(--text-main);
+    transition: all .15s ease;
+    z-index: 11;
+  }
+  .header-back-btn:active {
+    transform: translateY(-50%) scale(0.95);
+    background: var(--border-light);
+  }
+  .header-back-btn.visible { display: flex; }
 
   .barcode {
     display: flex;
@@ -280,6 +307,7 @@
     text-transform: uppercase;
   }
   .current-card .name { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+  .current-card .card-progress { font-size: 11px; font-weight: 600; opacity: 0.45; margin-top: 4px; }
 
   .receipt-list {
     flex: 1;
@@ -434,6 +462,9 @@
 <div id="app">
 
   <header class="receipt-head">
+    <button class="header-back-btn" id="headerBackBtn">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+    </button>
     <div class="barcode" id="barcode"></div>
     <h1 class="brand">NUTRI SORT<small>Intuition Engine</small></h1>
   </header>
@@ -462,9 +493,6 @@
     </section>
 
     <section class="screen" id="screen-nutrient">
-      <button class="back-btn" id="nutrientBackBtn">
-        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg> Back
-      </button>
       <h1 class="title">Select Macro</h1>
       <p class="sub">Every item in this sorting phase will be ordered dynamically based on this nutritional value.</p>
       <div class="scrollable-content">
@@ -473,9 +501,6 @@
     </section>
 
     <section class="screen" id="screen-category">
-      <button class="back-btn" id="categoryBackBtn">
-        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg> Back
-      </button>
       <h1 class="title">Choose Category</h1>
       <p class="sub">Pick the dynamic food pool you want to pull active items from.</p>
       <div class="scrollable-content">
@@ -484,11 +509,11 @@
     </section>
 
     <section class="screen" id="screen-game">
-      <button class="back-btn" id="gameBackBtn">Stop Session</button>
       <div class="game-wrap">
         <div class="current-card" id="currentCard">
           <div class="label">Current Item</div>
           <div class="name" id="currentFoodName">—</div>
+          <div class="card-progress" id="cardProgress">—</div>
         </div>
         <div class="anchor-label" id="anchorTop">Most ↑</div>
         <div class="receipt-list" id="receiptList"></div>
@@ -589,14 +614,16 @@ function newGame(nutrientKey, categoryKey){
   const nutrient = NUTRIENTS.find(n=>n.key===nutrientKey);
   const pool = shuffledPool(categoryKey);
   const first = pool.shift();
-  state = {
-    nutrient, categoryKey, pool,
-    ordered: [{food: first, result: null}],
-    lives: 4,
-    correctCount: 0,
-    current: null,
-    resolved: false
-  };
+    state = {
+      nutrient, categoryKey, pool,
+      ordered: [{food: first, result: null}],
+      lives: 4,
+      correctCount: 0,
+      current: null,
+      resolved: false,
+      totalItems: FOODS[categoryKey].length,
+      roundNumber: 0
+    };
 }
 
 function foodVal(entry){ return entry.food[state.nutrient.idx]; }
@@ -610,6 +637,23 @@ function show(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const target = document.getElementById(id);
   if(target) target.classList.add('active');
+
+  const backBtn = document.getElementById('headerBackBtn');
+  if(id === 'screen-home' || id === 'screen-over'){
+    backBtn.classList.remove('visible');
+  } else if(id === 'screen-nutrient'){
+    backBtn.classList.add('visible');
+    backBtn.onclick = () => { show('screen-home'); };
+  } else if(id === 'screen-category'){
+    backBtn.classList.add('visible');
+    backBtn.onclick = () => { show('screen-nutrient'); };
+  } else if(id === 'screen-game'){
+    backBtn.classList.add('visible');
+    backBtn.onclick = () => {
+      document.getElementById('hud').style.display='none';
+      show('screen-home');
+    };
+  }
 }
 
 function buildBarcode(){
@@ -676,10 +720,13 @@ function renderHearts(){
 function startRound(){
   if(state.pool.length===0){
     state.pool = shuffledPool(state.categoryKey);
+    state.roundNumber = 0;
   }
+  state.roundNumber++;
   state.current = state.pool.shift();
   state.resolved = false;
   document.getElementById('currentFoodName').textContent = state.current[0];
+  document.getElementById('cardProgress').textContent = state.roundNumber + '/' + state.totalItems;
   renderList();
 }
 
@@ -774,12 +821,6 @@ document.getElementById('playAgainBtn').onclick = () => {
   show('screen-nutrient');
 };
 document.getElementById('homeBtn').onclick = () => {
-  document.getElementById('hud').style.display='none';
-  show('screen-home');
-};
-document.getElementById('nutrientBackBtn').onclick = () => { show('screen-home'); };
-document.getElementById('categoryBackBtn').onclick = () => { show('screen-nutrient'); };
-document.getElementById('gameBackBtn').onclick = () => {
   document.getElementById('hud').style.display='none';
   show('screen-home');
 };
