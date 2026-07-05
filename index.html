@@ -463,8 +463,8 @@
 <div id="app">
 
   <header class="receipt-head">
-    <button class="header-back-btn" id="headerBackBtn">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
+    <button class="header-back-btn" id="headerBackBtn" type="button" aria-label="Back">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
     </button>
     <div class="barcode" id="barcode"></div>
     <h1 class="brand">NUTRI SORT<small>Intuition Engine</small></h1>
@@ -490,7 +490,7 @@
       </div>
       <h1 class="title">Master your food intuition.</h1>
       <p class="sub">Slot incoming ingredients into your sorted list dynamically based on real-world macronutrient weights. Miss a placement, lose a life.</p>
-      <button class="primary-btn" id="startBtn">Let's go!</button>
+      <button class="primary-btn" id="startBtn" type="button">Let's go!</button>
     </section>
 
     <section class="screen" id="screen-nutrient">
@@ -530,8 +530,8 @@
         <div class="num" id="finalScore">0</div>
         <div class="cap">Items Sorted Perfectly</div>
       </div>
-      <button class="primary-btn" id="playAgainBtn">Configure New Run</button>
-      <button class="ghost-btn" id="homeBtn">Return to Start</button>
+      <button class="primary-btn" id="playAgainBtn" type="button">Configure New Run</button>
+      <button class="ghost-btn" id="homeBtn" type="button">Return to Start</button>
     </section>
 
   </main>
