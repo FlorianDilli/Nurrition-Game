@@ -298,16 +298,17 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     flex-shrink: 0;
   }
-  .current-card .label { 
+  .current-card .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+  .current-card .card-header .label { 
     font-size: 9px; 
     font-weight: 700;
     letter-spacing: 0.5px; 
     opacity: 0.5; 
-    margin-bottom: 2px;
     text-transform: uppercase;
+    margin: 0;
   }
+  .current-card .card-header .card-progress { font-size: 11px; font-weight: 600; opacity: 0.45; }
   .current-card .name { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
-  .current-card .card-progress { font-size: 11px; font-weight: 600; opacity: 0.45; margin-top: 4px; }
 
   .receipt-list {
     flex: 1;
@@ -511,9 +512,11 @@
     <section class="screen" id="screen-game">
       <div class="game-wrap">
         <div class="current-card" id="currentCard">
-          <div class="label">Current Item</div>
+          <div class="card-header">
+            <div class="label">Current Item</div>
+            <div class="card-progress" id="cardProgress">—</div>
+          </div>
           <div class="name" id="currentFoodName">—</div>
-          <div class="card-progress" id="cardProgress">—</div>
         </div>
         <div class="anchor-label" id="anchorTop">Most ↑</div>
         <div class="receipt-list" id="receiptList"></div>
