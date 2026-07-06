@@ -467,7 +467,7 @@
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"/></svg>
     </button>
     <div class="barcode" id="barcode"></div>
-    <h1 class="brand">NUTRI SORT<small>Intuition Engine</small></h1>
+     <h1 class="brand">NUTRI SORT<small>Food Sense</small></h1>
   </header>
 
   <div class="hud" id="hud" style="display:none;">
@@ -542,53 +542,32 @@
 
 const FOODS = {
   fruits: [
-    ["Cucumber",15,0.7,3.6,0.1],["Watermelon",30,0.6,8,0.2],["Strawberry",32,0.7,8,0.3],
-    ["Peach",39,0.9,10,0.3],["Apple",52,0.3,14,0.2],["Pear",57,0.4,15,0.1],
-    ["Orange",47,0.9,12,0.1],["Grapes",69,0.7,18,0.2],["Kiwi",61,1.1,15,0.5],
-    ["Banana",89,1.1,23,0.3],["Mango",60,0.8,15,0.4],["Pineapple",50,0.5,13,0.1],
-    ["Cherries",63,1.1,16,0.2],["Blueberries",57,0.7,14,0.3],["Fig",74,0.8,19,0.3],
-    ["Pomegranate",83,1.7,19,1.2],["Avocado",160,2,9,15],["Coconut Meat",354,3.3,15,33]
+    ["Apple",52,0.3,14,0.2],["Banana",89,1.1,23,0.3],["Orange",47,0.9,12,0.1],
+    ["Grapes",69,0.7,18,0.2],["Strawberry",32,0.7,8,0.3]
   ],
   vegetables: [
-    ["Lettuce",15,1.4,2.9,0.2],["Spinach",23,2.9,3.6,0.4],["Zucchini",17,1.2,3.1,0.3],
-    ["Tomato",18,0.9,3.9,0.2],["Bell Pepper",31,1,6,0.3],["Broccoli",34,2.8,7,0.4],
-    ["Cauliflower",25,1.9,5,0.3],["Carrot",41,0.9,10,0.2],["Onion",40,1.1,9,0.1],
-    ["Brussels Sprouts",43,3.4,9,0.3],["Beetroot",43,1.6,10,0.2],["Sweet Corn",86,3.2,19,1.2],
-    ["Sweet Potato (Baked)",90,2,21,0.1],["Potato (Boiled)",87,1.9,20,0.1],["Butternut Squash",45,1,12,0.1],
-    ["Garlic",149,6.4,33,0.5],["Peas",81,5.4,14,0.4],["Kale",49,4.3,9,0.9]
+    ["Spinach",23,2.9,3.6,0.4],["Broccoli",34,2.8,7,0.4],["Carrot",41,0.9,10,0.2],
+    ["Tomato",18,0.9,3.9,0.2],["Potato (Boiled)",87,1.9,20,0.1],["Bell Pepper",31,1,6,0.3]
   ],
   meat: [
-    ["Chicken Breast (Grilled)",165,31,0,3.6],["Turkey Breast (Roasted)",147,29,0,2],
-    ["Pork Loin (Roasted)",242,27,0,14],["Beef Sirloin (Grilled)",271,26,0,18],
-    ["Lamb Chop (Grilled)",294,25,0,21],["Beef Mince 5% (Cooked)",174,26,0,7],
-    ["Beef Mince 20% (Cooked)",254,25,0,17],["Chicken Thigh (Roasted)",209,26,0,11],
-    ["Duck Breast (Roasted)",201,24,0,11],["Bacon (Grilled)",541,37,1.4,42],
-    ["Ham (Sliced)",145,21,1.5,6],["Beef Steak (Lean, Grilled)",217,29,0,10]
+    ["Chicken Breast (Grilled)",165,31,0,3.6],["Beef Steak (Lean, Grilled)",217,29,0,10],
+    ["Bacon (Grilled)",541,37,1.4,42],["Chicken Thigh (Roasted)",209,26,0,11]
   ],
   fish: [
-    ["Cod (Baked)",105,23,0,0.9],["Shrimp (Boiled)",99,24,0.2,0.3],["Tuna (Canned in Water)",116,26,0,0.8],
-    ["Haddock (Baked)",111,24,0,0.9],["Tilapia (Baked)",128,26,0,2.7],["Sea Bass (Grilled)",124,24,0,2.6],
-    ["Trout (Baked)",148,21,0,6.6],["Salmon (Baked)",206,28,0,10],["Mackerel (Grilled)",262,24,0,18],
-    ["Sardines (Canned in Oil)",208,25,0,11],["Herring (Grilled)",203,18,0,14],["Anchovies (Canned)",210,29,0,10]
+    ["Salmon (Baked)",206,28,0,10],["Tuna (Canned in Water)",116,26,0,0.8],
+    ["Cod (Baked)",105,23,0,0.9],["Shrimp (Boiled)",99,24,0.2,0.3]
   ],
   dairy: [
-    ["Skim Milk",34,3.4,5,0.1],["Buttermilk",40,3.3,4.8,1],["Whole Milk",61,3.2,4.8,3.3],
-    ["Cottage Cheese",98,11,3.4,4.3],["Greek Yogurt",97,9,6,5],["Plain Yogurt",61,3.5,4.7,3.3],
-    ["Mozzarella",280,22,2.2,17],["Feta Cheese",264,14,4,21],["Cheddar Cheese",403,25,1.3,33],
-    ["Parmesan",431,38,4.1,29],["Cream Cheese",342,6,4,34],["Butter",717,0.9,0.1,81]
+    ["Whole Milk",61,3.2,4.8,3.3],["Greek Yogurt",97,9,6,5],
+    ["Cheddar Cheese",403,25,1.3,33],["Mozzarella",280,22,2.2,17]
   ],
   grains: [
-    ["Rice Cakes",387,8,82,2.8],["White Rice (Cooked)",130,2.7,28,0.3],["Oats (Cooked)",71,2.5,12,1.4],
-    ["Quinoa (Cooked)",120,4.4,21,1.9],["Brown Rice (Cooked)",123,2.7,26,1],["Whole Wheat Bread",247,13,41,4],
-    ["White Bread",265,9,49,3.2],["Couscous (Cooked)",112,3.8,23,0.2],["Barley (Cooked)",123,2.3,28,0.4],
-    ["Pasta (Cooked)",158,5.8,31,0.9],["Millet (Cooked)",119,3.5,23,1],["Buckwheat (Cooked)",92,3.4,20,0.6],
-    ["Cornmeal (Cooked)",370,8,79,3.6],["Rye Bread",259,9,48,3.3]
+    ["White Rice (Cooked)",130,2.7,28,0.3],["Pasta (Cooked)",158,5.8,31,0.9],
+    ["Whole Wheat Bread",247,13,41,4],["Oats (Cooked)",71,2.5,12,1.4]
   ],
   legumes: [
-    ["Green Beans (Cooked)",35,1.9,7,0.2],["Edamame (Cooked)",122,11,10,5],["Tofu (Firm)",144,15,3.9,9],
-    ["Lentils (Cooked)",116,9,20,0.4],["Black Beans (Cooked)",132,8.9,24,0.5],["Chickpeas (Cooked)",164,9,27,2.6],
-    ["Kidney Beans (Cooked)",127,8.7,23,0.5],["Split Peas (Cooked)",118,8.3,21,0.4],["Soybeans (Cooked)",173,17,10,9],
-    ["White Beans (Cooked)",139,9.7,25,0.4],["Pinto Beans (Cooked)",143,9,26,0.7],["Peanuts (Roasted)",567,26,16,49]
+    ["Lentils (Cooked)",116,9,20,0.4],["Chickpeas (Cooked)",164,9,27,2.6],
+    ["Tofu (Firm)",144,15,3.9,9],["Black Beans (Cooked)",132,8.9,24,0.5]
   ]
 };
 FOODS.all = Object.keys(FOODS).filter(k=>k!=='all').flatMap(k=>FOODS[k]);
@@ -599,11 +578,9 @@ const NUTRIENTS = [
   { key:"carb", label:"Carbohydrates", unit:"g",    idx:3, daily:325 },
   { key:"fat",  label:"Fat",           unit:"g",    idx:4, daily:75 }
 ];
-const CATEGORIES = [
-  {key:"all", label:"All Foods"}, {key:"fruits", label:"Fruits"}, {key:"vegetables", label:"Vegetables"},
-  {key:"meat", label:"Meat"}, {key:"fish", label:"Fish"}, {key:"dairy", label:"Dairy"},
-  {key:"grains", label:"Grains"}, {key:"legumes", label:"Legumes"}
-];
+const CATEGORY_KEYS = Object.keys(FOODS);
+const CATEGORIES = 
+  [{key:"all", label:"All Foods"}].concat(CATEGORY_KEYS.map(k=>({key:k, label:k.charAt(0).toUpperCase()+k.slice(1)})));
 
 let state = {};
 
@@ -636,27 +613,40 @@ function displayVal(entry){
   return state.nutrient.unit === 'kcal' ? Math.round(v) : v;
 }
 
-function show(id){
+const navStack = [];
+
+function pushNav(id){
+  const old = document.querySelector('.screen.active');
+  if(old) navStack.push(old.id);
+  switchTo(id);
+}
+
+function switchTo(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   const target = document.getElementById(id);
   if(target) target.classList.add('active');
 
   const backBtn = document.getElementById('headerBackBtn');
-  if(id === 'screen-home' || id === 'screen-over'){
+  if(navStack.length === 0){
     backBtn.classList.remove('visible');
-  } else if(id === 'screen-nutrient'){
-    backBtn.classList.add('visible');
-    backBtn.onclick = () => { show('screen-home'); };
-  } else if(id === 'screen-category'){
-    backBtn.classList.add('visible');
-    backBtn.onclick = () => { show('screen-nutrient'); };
-  } else if(id === 'screen-game'){
+  } else {
     backBtn.classList.add('visible');
     backBtn.onclick = () => {
-      document.getElementById('hud').style.display='none';
-      show('screen-home');
+      const prev = navStack.pop();
+      if(id === 'screen-game'){
+        document.getElementById('hud').style.display='none';
+      }
+      switchTo(prev);
     };
   }
+}
+
+function resetNav(){
+  navStack.length = 0;
+  switchTo('screen-home');
+}
+
+function show(id){ pushNav(id); }
 }
 
 function buildBarcode(){
@@ -808,7 +798,8 @@ function handlePlacement(chosenIndex){
   if(state.lives<=0){
     setTimeout(()=>{
       document.getElementById('finalScore').textContent = state.correctCount;
-      show('screen-over');
+      resetNav();
+      switchTo('screen-over');
     }, 900);
   }else{
     setTimeout(()=>{
@@ -817,15 +808,16 @@ function handlePlacement(chosenIndex){
   }
 }
 
-document.getElementById('startBtn').onclick = () => { renderNutrientScreen(); show('screen-nutrient'); };
+document.getElementById('startBtn').onclick = () => { resetNav(); renderNutrientScreen(); pushNav('screen-nutrient'); };
 document.getElementById('playAgainBtn').onclick = () => {
   document.getElementById('hud').style.display='flex';
+  resetNav();
   renderNutrientScreen();
-  show('screen-nutrient');
+  pushNav('screen-nutrient');
 };
 document.getElementById('homeBtn').onclick = () => {
   document.getElementById('hud').style.display='none';
-  show('screen-home');
+  resetNav();
 };
 
 })();
